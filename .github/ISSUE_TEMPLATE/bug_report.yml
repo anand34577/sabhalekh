@@ -1,0 +1,54 @@
+name: Bug report
+description: Something isn't working the way it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to report this. A few details help a lot. Please don't attach recordings of real meetings.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Click New Recording
+        2. Join a Teams call and speak for a minute
+        3. Click Stop & save
+        4. The transcript …
+  - type: input
+    id: version
+    attributes:
+      label: Sabhalekh version
+      description: Shown in Settings → About.
+      placeholder: "1.2.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: windows
+    attributes:
+      label: Windows version
+      options: [Windows 11, Windows 10]
+    validations:
+      required: true
+  - type: input
+    id: hardware
+    attributes:
+      label: Hardware badge
+      description: The text at the bottom left of the window, for example "GPU Mode: GTX 1650" or "CPU Mode (6 threads)".
+  - type: dropdown
+    id: language
+    attributes:
+      label: Meeting language
+      options: [English, Hindi, Hinglish (mixed), Other, Not related to language]
+  - type: textarea
+    id: log
+    attributes:
+      label: backend.log
+      description: The last 50 lines or so (Settings → Storage → Open logs folder). Check it for anything private before pasting.
+      render: text
