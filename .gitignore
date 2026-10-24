@@ -1,0 +1,31 @@
+# environments
+.venv/
+.buildenv/
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
+
+# build outputs (release files are built by installer\build.ps1 and attached to GitHub releases)
+build/
+dist/
+app/dist/
+app/public/fonts/
+app/src-tauri/target/
+app/src-tauri/gen/
+
+# large model binaries and native runtimes: recreate with tools\fetch_models.py (see the Building from source guide)
+models/asr/
+models/diarization/nemotron3/*.onnx
+models/diarization/nemotron3/*.npz
+models/manifest.json
+bin/transcribe/
+
+# local tools, editors and secrets
+.claude/
+.idea/
+.vscode/
+*.log
+*.cmd
+.env
+.env.*
