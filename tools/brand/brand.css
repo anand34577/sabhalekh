@@ -1,0 +1,32 @@
+@font-face { font-family: "Noto Sans"; font-weight: 400; src: url(../../fonts/NotoSans-Regular.ttf); }
+@font-face { font-family: "Noto Sans"; font-weight: 500; src: url(../../fonts/NotoSans-Medium.ttf); }
+@font-face { font-family: "Noto Sans"; font-weight: 700; src: url(../../fonts/NotoSans-Bold.ttf); }
+@font-face { font-family: "Noto Sans Devanagari"; font-weight: 500; src: url(../../fonts/NotoSansDevanagari-Medium.ttf); }
+@font-face { font-family: "Noto Sans Devanagari"; font-weight: 700; src: url(../../fonts/NotoSansDevanagari-Bold.ttf); }
+html, body { margin: 0; overflow: hidden; }
+body {
+  font-family: "Noto Sans", "Noto Sans Devanagari", sans-serif; color: #eef0f7; position: relative;
+  background:
+    radial-gradient(760px 480px at 6% 8%, rgba(88,140,255,.30), transparent 70%),
+    radial-gradient(720px 460px at 100% 100%, rgba(150,96,255,.26), transparent 70%),
+    linear-gradient(135deg, #0b0d16, #121527 60%, #171329);
+}
+body::before { content: ""; position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 40px 40px; -webkit-mask-image: radial-gradient(900px 520px at 72% 50%, #000, transparent 75%); }
+.brand { display: flex; align-items: center; gap: 16px; }
+.brand img { width: 64px; height: 64px; border-radius: 15px; }
+.brand span { font-size: 44px; font-weight: 700; letter-spacing: -0.02em; }
+.brand .hi { font-family: "Noto Sans Devanagari"; font-size: 26px; font-weight: 500; color: #a9b4ff; margin-left: 4px; }
+.pill { font-size: 15px; font-weight: 500; color: #a9c4ff; padding: 4px 12px; border-radius: 999px;
+        background: rgba(88,140,255,.12); border: 1px solid rgba(88,140,255,.35); }
+h1 { font-weight: 700; letter-spacing: -0.03em; line-height: 1.06; margin: 0; }
+h1 em { font-style: normal; background: linear-gradient(90deg, #5d93ff, #a06bff); -webkit-background-clip: text; color: transparent; }
+p { color: #a4abc0; line-height: 1.45; margin: 0; }
+.f { display: flex; align-items: center; gap: 12px; font-size: 17px; color: #d6dbe8; }
+.f i { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-style: normal; font-size: 16px; flex: none; }
+.b { background: rgba(88,140,255,.16); color: #7aa6ff; } .v { background: rgba(160,107,255,.16); color: #b996ff; }
+.g { background: rgba(61,214,140,.15); color: #4fe39b; } .o { background: rgba(255,158,69,.16); color: #ffad66; }
+.win { position: absolute; border-radius: 12px; overflow: hidden;
+       box-shadow: 0 40px 90px -20px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.10); }
+.win img { width: 100%; display: block; }
