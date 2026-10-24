@@ -24,7 +24,7 @@ First public release.
 - The app is now called **Sabhalekh**. The pre-release builds were called MeetScribe, a name already used by other
   products. Your meetings, settings and recordings move to the new data folder (`%APPDATA%\Sabhalekh`)
   automatically the first time you open Sabhalekh, and playback keeps working for every old meeting.
-- The installer is about half the size (about 600 MB instead of 1.3 GB). It no longer includes NVIDIA's cuBLAS
+- The installer is about a third smaller (about 850 MB instead of 1.3 GB). It no longer includes NVIDIA's cuBLAS
   library, which only the optional Whisper model packs used. Whisper packs still use an NVIDIA graphics card if the
   CUDA 12 Toolkit is installed, or if you copy the two cuBLAS files into `%APPDATA%\Sabhalekh\cuda`; otherwise they run
   on the CPU. The built-in Nemotron speech recognition is not affected.

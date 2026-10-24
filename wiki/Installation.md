@@ -12,7 +12,7 @@ You do **not** need an internet connection to install or use Sabhalekh, and you 
 ## Step 1: Download
 
 1. Open the [latest release page](https://github.com/anand34577/sabhalekh/releases/latest).
-2. Under **Assets**, click **`Sabhalekh-Setup-1.2.0.exe`** (the version number may be higher). It's about 600 MB,
+2. Under **Assets**, click **`Sabhalekh-Setup-1.2.0.exe`** (the version number may be higher). It's about 850 MB,
    because the speech models are inside.
 
 You don't need the other files to get started:

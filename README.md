@@ -99,7 +99,7 @@ leave the PC.
 2. Run it. It installs for your user account only, so it needs no admin rights, and it needs no internet connection.
 3. Open Sabhalekh. A short welcome guide checks your microphone and speakers and records a 10-second test.
 
-The installer is large (about 600 MB) because the speech models are inside it. After that, nothing else is ever
+The installer is large (about 850 MB) because the speech models are inside it. After that, nothing else is ever
 downloaded.
 
 > **Windows SmartScreen** may warn you because the installer is not code-signed yet. Click **More info → Run anyway**.
