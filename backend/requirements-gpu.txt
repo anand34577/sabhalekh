@@ -1,0 +1,3 @@
+# Optional, development only: CUDA 12 cuBLAS so Whisper model packs can use an NVIDIA GPU while you work on the code.
+# It is proprietary (NVIDIA CUDA EULA) and is never bundled into the installer.
+nvidia-cublas-cu12==12.9.2.10

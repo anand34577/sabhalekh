@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+/* Bundled fonts (copied from /fonts at build time; never fetched). */
+@font-face { font-family: "Noto Sans"; src: url("/fonts/NotoSans-Regular.ttf") format("truetype"); font-weight: 400; font-display: block; }
+@font-face { font-family: "Noto Sans"; src: url("/fonts/NotoSans-Medium.ttf") format("truetype"); font-weight: 500; font-display: block; }
+@font-face { font-family: "Noto Sans"; src: url("/fonts/NotoSans-Bold.ttf") format("truetype"); font-weight: 600 700; font-display: block; }
+@font-face { font-family: "Noto Sans Devanagari"; src: url("/fonts/NotoSansDevanagari-Regular.ttf") format("truetype"); font-weight: 400; font-display: block; }
+@font-face { font-family: "Noto Sans Devanagari"; src: url("/fonts/NotoSansDevanagari-Medium.ttf") format("truetype"); font-weight: 500; font-display: block; }
+@font-face { font-family: "Noto Sans Devanagari"; src: url("/fonts/NotoSansDevanagari-Bold.ttf") format("truetype"); font-weight: 600 700; font-display: block; }
+
+@theme {
+  --font-sans: "Noto Sans", "Noto Sans Devanagari", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --color-bg: var(--bg);
+  --color-layer: var(--layer);
+  --color-layer-2: var(--layer-2);
+  --color-card: var(--card);
+  --color-card-hover: var(--card-hover);
+  --color-stroke: var(--stroke);
+  --color-stroke-strong: var(--stroke-strong);
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-fg-3: var(--fg-3);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: #e5484d;
+  --color-success: #30a46c;
+  --color-warning: #f5a524;
+  --color-rec: #e81123;
+}
+
+:root {
+  --accent: #4f8ef7;
+  --accent-fg: #ffffff;
+  --accent-soft: color-mix(in srgb, var(--accent) 18%, transparent);
+  --scale: 1;
+  color-scheme: dark;
+  --bg: #1b1b1f;
+  --layer: #232328;
+  --layer-2: #2a2a30;
+  --card: rgba(255, 255, 255, 0.045);
+  --card-hover: rgba(255, 255, 255, 0.075);
+  --stroke: rgba(255, 255, 255, 0.075);
+  --stroke-strong: rgba(255, 255, 255, 0.14);
+  --fg: #f4f4f6;
+  --fg-2: rgba(244, 244, 246, 0.74);
+  --fg-3: rgba(244, 244, 246, 0.5);
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+:root.light {
+  color-scheme: light;
+  --bg: #eef0f4;
+  --layer: #f8f9fb;
+  --layer-2: #ffffff;
+  --card: rgba(255, 255, 255, 0.8);
+  --card-hover: #ffffff;
+  --stroke: rgba(15, 20, 40, 0.08);
+  --stroke-strong: rgba(15, 20, 40, 0.16);
+  --fg: #16181d;
+  --fg-2: rgba(22, 24, 29, 0.72);
+  --fg-3: rgba(22, 24, 29, 0.5);
+  --shadow: 0 8px 28px rgba(20, 30, 60, 0.12);
+}
+
+/* Windows 11: let Mica show through the sidebar and chrome. */
+:root.mica { --bg: transparent; }
+:root.mica:not(.light) { --layer: rgba(32, 32, 38, 0.82); }
+:root.mica.light { --layer: rgba(250, 250, 252, 0.86); }
+
+html { font-size: calc(15px * var(--scale)); }
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  user-select: none;
+}
+:root:not(.mica) body { background: var(--bg); }
+
+input, textarea, [contenteditable="true"], .selectable { user-select: text; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+::selection { background: color-mix(in srgb, var(--accent) 40%, transparent); }
+
+/* Devanagari needs a bit more line height for matras above and below the line. */
+.transcript-text { line-height: 1.75; font-size: 1.02rem; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--stroke-strong); border-radius: 10px; border: 3px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background-color: var(--fg-3); }
+::-webkit-scrollbar-track { background: transparent; }
+
+@keyframes pulse-rec { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.45; transform: scale(0.85); } }
+.rec-dot { animation: pulse-rec 1.4s ease-in-out infinite; }
+@keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.fade-in { animation: fade-in 0.18s ease-out both; }
+@keyframes shimmer { from { background-position: -200px 0; } to { background-position: 200px 0; } }
+.progress-indeterminate { background: linear-gradient(90deg, transparent, var(--accent), transparent); background-size: 200px 100%; animation: shimmer 1.2s linear infinite; }
+
+mark.hit { background: color-mix(in srgb, var(--warning, #f5a524) 45%, transparent); color: inherit; border-radius: 3px; padding: 0 1px; }
+mark.hit.current { background: #f5a524; color: #111; }
+.word-active { background: var(--accent-soft); box-shadow: 0 0 0 2px var(--accent-soft); border-radius: 4px; color: var(--fg); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
