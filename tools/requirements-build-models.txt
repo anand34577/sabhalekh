@@ -1,0 +1,11 @@
+# Build machine only (one-time model conversion; never shipped). Install torch from the CPU index first:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+transformers>=5.19
+ctranslate2==4.8.3
+huggingface_hub
+safetensors
+librosa
+onnx
+onnx_ir
+onnxruntime==1.31.0
+numpy

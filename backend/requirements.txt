@@ -1,0 +1,20 @@
+# Runtime dependencies of the Sabhalekh backend (bundled into sabhalekh-backend.exe by PyInstaller).
+# No PyTorch: Nemotron 3.5 ASR runs on transcribe.cpp (ggml, Vulkan/CPU), Whisper on CTranslate2,
+# Nemotron-3-Diarization and Silero VAD on ONNX Runtime.
+# transcribe-cpp 0.4.0 (Python bindings) is not on PyPI yet: pip install --no-deps <transcribe.cpp>/bindings/python
+# (installer\build.ps1 does this); its native library ships in bin/transcribe/.
+faster-whisper==1.2.1
+ctranslate2==4.8.3
+onnxruntime==1.31.0
+av==19.0.1
+numpy==2.5.4
+fastapi==0.143.2
+uvicorn==0.54.0
+websockets==17.2
+PyAudioWPatch==0.2.12.9
+psutil==7.2.2
+python-docx==1.2.0
+fpdf2==2.8.9
+uharfbuzz==0.56.3
+fonttools==4.67.0
+nvidia-ml-py==13.615.71

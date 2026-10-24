@@ -1,0 +1,44 @@
+name: Publish wiki
+
+# Mirrors the wiki/ folder to the repository's GitHub wiki on every change.
+# One-time setup: the wiki must exist, so create any page once in the Wiki tab.
+on:
+  push:
+    branches: [main]
+    paths: ["wiki/**", ".github/workflows/wiki.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: wiki
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Push wiki/ to the GitHub wiki
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          url="https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git"
+          if ! git clone --depth 1 "$url" wiki-repo 2>/dev/null; then
+            echo "::warning title=Wiki not published::The wiki repository doesn't exist yet. Open the repository's Wiki tab, save any page once, then re-run this workflow (Actions → Publish wiki → Run workflow)."
+            exit 0
+          fi
+          rsync -a --delete --exclude ".git" wiki/ wiki-repo/
+          cd wiki-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Wiki is already up to date."
+            exit 0
+          fi
+          git commit -m "Update wiki from ${GITHUB_SHA::7}"
+          git push

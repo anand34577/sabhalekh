@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: User guide
+    url: https://github.com/anand34577/sabhalekh/wiki
+    about: How to install, record, export and fix common problems.
+  - name: Questions and ideas
+    url: https://github.com/anand34577/sabhalekh/discussions
+    about: Ask a question or share an idea.

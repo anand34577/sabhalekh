@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sabhalekh: private meeting transcripts on your own PC</title>
+  <meta name="description" content="Free, open-source meeting transcription for Windows. Speaker-labelled transcripts in English, Hindi and Hinglish. No account, no cloud, nothing leaves your PC.">
+  <meta property="og:title" content="Sabhalekh: private meeting transcripts on your own PC">
+  <meta property="og:description" content="Free, open-source meeting transcription for Windows with speaker names, in English, Hindi and Hinglish. Fully offline.">
+  <meta property="og:image" content="https://anand34577.github.io/sabhalekh/images/social-preview.png">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/png" href="images/logo.png">
+  <style>
+    :root {
+      --bg: #f7f8fc; --fg: #141726; --fg2: #4b5268; --card: #ffffff; --line: #e3e6f0;
+      --accent: #4f7dff; --accent2: #8b5cf6; --soft: rgba(79,125,255,.10);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #0d0f19; --fg: #eef0f7; --fg2: #a4abc0; --card: #161a2a; --line: #262b40; --soft: rgba(79,125,255,.14); }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.6 "Segoe UI", system-ui, sans-serif; }
+    a { color: var(--accent); }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+    header { padding: 22px 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: var(--fg); text-decoration: none; }
+    .brand img { width: 34px; height: 34px; border-radius: 8px; }
+    nav a { color: var(--fg2); text-decoration: none; margin-left: 20px; font-size: 15px; }
+    nav a:hover { color: var(--fg); }
+    .hero { padding: 48px 0 32px; text-align: center; }
+    .hero h1 { font-size: clamp(34px, 6vw, 56px); line-height: 1.08; letter-spacing: -0.02em; margin: 0 0 18px; }
+    .hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hero p { color: var(--fg2); font-size: 19px; max-width: 680px; margin: 0 auto 28px; }
+    .cta { display: inline-flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+    .btn { display: inline-block; padding: 12px 22px; border-radius: 10px; font-weight: 600; text-decoration: none; }
+    .btn.primary { background: var(--accent); color: #fff; }
+    .btn.ghost { border: 1px solid var(--line); color: var(--fg); background: var(--card); }
+    .note { color: var(--fg2); font-size: 14px; margin-top: 14px; }
+    .shot { margin: 40px auto 0; max-width: 1020px; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 30px 80px -30px rgba(20,23,38,.45); }
+    .shot img { display: block; width: 100%; height: auto; }
+    section { padding: 56px 0; }
+    h2 { font-size: 30px; letter-spacing: -0.01em; margin: 0 0 24px; text-align: center; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+    .card h3 { margin: 0 0 6px; font-size: 18px; }
+    .card p { margin: 0; color: var(--fg2); font-size: 15.5px; }
+    .steps { counter-reset: s; display: grid; gap: 14px; max-width: 720px; margin: 0 auto; padding: 0; list-style: none; }
+    .steps li { counter-increment: s; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px 16px 62px; position: relative; }
+    .steps li::before { content: counter(s); position: absolute; left: 18px; top: 14px; width: 30px; height: 30px; border-radius: 50%; background: var(--soft); color: var(--accent); font-weight: 700; display: grid; place-items: center; }
+    .pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+    .pair img { width: 100%; border-radius: 12px; border: 1px solid var(--line); display: block; }
+    footer { border-top: 1px solid var(--line); padding: 28px 0 40px; color: var(--fg2); font-size: 14px; }
+    @media (max-width: 640px) { nav a:not(.keep) { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <a class="brand" href="./"><img src="images/logo.png" alt="">Sabhalekh</a>
+      <nav>
+        <a href="#features">Features</a>
+        <a href="https://github.com/anand34577/sabhalekh/wiki">User guide</a>
+        <a class="keep" href="https://github.com/anand34577/sabhalekh">GitHub</a>
+      </nav>
+    </header>
+
+    <div class="hero">
+      <h1>Your meetings, written down.<br><em>Nothing leaves your PC.</em></h1>
+      <p>Sabhalekh records your Teams, Zoom or Meet calls and turns them into transcripts with speaker names, in English, Hindi and Hinglish. Free, open source, and completely offline.</p>
+      <div class="cta">
+        <a class="btn primary" href="https://github.com/anand34577/sabhalekh/releases/latest">Download for Windows</a>
+        <a class="btn ghost" href="https://github.com/anand34577/sabhalekh/wiki/Getting-Started">How it works</a>
+      </div>
+      <div class="note">Windows 10 and 11 · No account · No admin rights · MIT License</div>
+      <div class="shot"><img src="images/transcript-light.png" alt="A meeting transcript in Sabhalekh with two named speakers, Hindi and English lines, and the audio player" width="2040" height="1290"></div>
+    </div>
+  </div>
+
+  <section id="features">
+    <div class="wrap">
+      <h2>Everything you need from a meeting recorder</h2>
+      <div class="grid">
+        <div class="card"><h3>Private by design</h3><p>Speech recognition, speaker detection and search run on your PC. The app blocks its own network access, so your recordings can't be uploaded.</p></div>
+        <div class="card"><h3>English, Hindi, Hinglish</h3><p>Mixed-language meetings in one transcript. Hindi in Devanagari or Roman letters, and search that finds क्या when you type kya.</p></div>
+        <div class="card"><h3>Knows who spoke</h3><p>Up to 8 speakers. Your microphone is "You", and you can rename everyone else everywhere at once.</p></div>
+        <div class="card"><h3>Works with any call app</h3><p>Records your microphone and what your PC plays. Teams, Zoom, Meet, WhatsApp: no bot joins the call.</p></div>
+        <div class="card"><h3>Fast on ordinary laptops</h3><p>An hour-long meeting is ready in about 5 minutes on a 4 GB graphics card. NVIDIA, AMD, Intel or just the CPU.</p></div>
+        <div class="card"><h3>Export anywhere</h3><p>Word, PDF meeting report, subtitles, text, Markdown, JSON and CSV, one meeting or many at once.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2>Three steps</h2>
+      <ol class="steps">
+        <li><b>Install.</b> Download the installer and run it. No admin rights or internet needed; the speech models are included.</li>
+        <li><b>Record or import.</b> Click New Recording before your call (or press Ctrl+Shift+R), or drop an audio or video file onto the window.</li>
+        <li><b>Read, fix, share.</b> Click any word to hear it, name the speakers, and export to Word, PDF or subtitles.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap pair">
+      <img src="images/recording-dark.png" alt="Recording screen with separate meters for your microphone and the other participants" loading="lazy">
+      <img src="images/export-light.png" alt="Export menu with Word, PDF, subtitle, text, Markdown, JSON and CSV formats" loading="lazy">
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      Sabhalekh is free and open source under the MIT License. It bundles NVIDIA Nemotron models (OpenMDW-1.1) and other third-party components under their own licenses; see <a href="https://github.com/anand34577/sabhalekh/blob/main/THIRD_PARTY_LICENSES.md">third-party licenses</a>.
+      Sabhalekh is an independent project, not affiliated with or endorsed by NVIDIA, OpenAI, Microsoft, Zoom or Google.
+      <br><a href="https://github.com/anand34577/sabhalekh">Source code</a> · <a href="https://github.com/anand34577/sabhalekh/wiki">User guide</a> · <a href="https://github.com/anand34577/sabhalekh/issues/new/choose">Report an issue</a>
+    </div>
+  </footer>
+</body>
+</html>
