@@ -42,3 +42,13 @@ def test_fresh_install_uses_new_folder(tmp_path):
     from sabhalekh.config import _adopt_legacy_data
 
     assert _adopt_legacy_data(tmp_path / "MeetScribe", tmp_path / "Sabhalekh") == tmp_path / "Sabhalekh"
+
+
+def test_recording_says_why_it_is_unavailable_off_windows(monkeypatch):
+    import pytest
+
+    from sabhalekh.audio import recorder
+
+    monkeypatch.setattr(recorder, "SUPPORTED", False)
+    with pytest.raises(recorder.RecorderError, match="only available on Windows"):
+        recorder._pyaudio()

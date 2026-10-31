@@ -148,6 +148,48 @@ DEFAULT_SETTINGS: dict[str, Any] = {
 }
 
 
+_ENUMS = {
+    "theme": {"system", "dark", "light"},
+    "language_mode": {"auto", "en", "hi", "translate"},
+    "script_mode": {"as_spoken", "devanagari", "roman"},
+    "profile_override": {"auto", "gpu_high", "gpu_low", "cpu", "cpu_fast"},
+    "playback_kbps": {48, 64, 96},
+}
+_RANGES = {"text_scale": (0.5, 2.0), "min_speakers": (1, 8), "max_speakers": (1, 8), "auto_delete_audio_days": (0, 3650)}
+_NULLABLE = {"min_speakers", "max_speakers", "mic_device", "loopback_device"}
+
+
+def validate_settings(values: dict[str, Any]) -> None:
+    """Reject unknown keys and out-of-range values before anything is stored: a text size of 0 or a non-colour
+    accent would otherwise be saved and break the UI on every start."""
+    for k, v in values.items():
+        if k not in DEFAULT_SETTINGS:
+            raise ValueError(f"unknown setting: {k}")
+        if v is None:
+            if k not in _NULLABLE:
+                raise ValueError(f"{k} cannot be empty")
+            continue
+        default = DEFAULT_SETTINGS[k]
+        if k in _ENUMS:
+            if v not in _ENUMS[k]:
+                raise ValueError(f"{k} must be one of {sorted(_ENUMS[k], key=str)}")
+        elif k == "accent":
+            if not (isinstance(v, str) and re.fullmatch(r"#[0-9a-fA-F]{6}", v)):
+                raise ValueError("accent must be a colour like #4F8EF7")
+        elif isinstance(default, bool):
+            if not isinstance(v, bool):
+                raise ValueError(f"{k} must be true or false")
+        elif k in _RANGES:
+            lo, hi = _RANGES[k]
+            if isinstance(v, bool) or not isinstance(v, (int, float)) or not lo <= v <= hi:
+                raise ValueError(f"{k} must be a number from {lo} to {hi}")
+        elif k in ("mic_device", "loopback_device"):
+            if not isinstance(v, (str, int)) or isinstance(v, bool):
+                raise ValueError(f"{k} must be a device id")
+        elif not isinstance(v, str) or len(v) > 4000:
+            raise ValueError(f"{k} must be text of at most 4000 characters")
+
+
 def _whole_percents(shares: list[float]) -> list[int]:
     """Round percentages to whole numbers that still add up to 100 (largest remainder), so a report never shows
     75 % + 26 %."""
@@ -238,6 +280,7 @@ class Database:
         return out
 
     def set_settings(self, values: dict[str, Any]) -> dict[str, Any]:
+        validate_settings(values)
         with self.tx() as c:
             for k, v in values.items():
                 c.execute("INSERT INTO settings(key, value) VALUES (?, ?) "

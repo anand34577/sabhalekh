@@ -19,8 +19,15 @@ concurrency:
 
 jobs:
   backend:
-    name: Backend tests (Python)
-    runs-on: windows-latest
+    name: "Backend tests (${{ matrix.os }})"
+    runs-on: ${{ matrix.os }}
+    # Windows is the supported platform. Linux and macOS report whether the backend still installs and passes there
+    # (recording is Windows-only for now) without blocking a merge.
+    continue-on-error: ${{ matrix.os != 'windows-latest' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v5
 
@@ -38,8 +45,13 @@ jobs:
         run: python -m pytest tests -q
 
   app:
-    name: Desktop app (UI tests, type check, Rust build check)
-    runs-on: windows-latest
+    name: "Desktop app (${{ matrix.os }}, UI tests and Rust build check)"
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.os != 'windows-latest' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v5
 
@@ -60,6 +72,12 @@ jobs:
       - name: Type check and build the UI
         working-directory: app
         run: npm run build
+
+      - name: Linux system libraries for Tauri
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libssl-dev patchelf
 
       - uses: dtolnay/rust-toolchain@stable
 

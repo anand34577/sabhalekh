@@ -83,7 +83,8 @@ def create_app(app_state: App) -> FastAPI:
                 "bad_model_files": S.registry.bad_files, "recording": S.recorder.status(),
                 "busy": S.queue.busy, "data_dir": str(config.DATA_DIR), "logs_dir": str(config.LOGS_DIR),
                 "network_blocked_attempts": len(netguard.blocked_attempts()),
-                "windows_build": sys.getwindowsversion().build if sys.platform == "win32" else 0}
+                "windows_build": sys.getwindowsversion().build if sys.platform == "win32" else 0,
+                "recording_supported": rec.SUPPORTED}
 
     @api.get("/api/hardware")
     def hardware():
@@ -126,7 +127,10 @@ def create_app(app_state: App) -> FastAPI:
 
     @api.put("/api/settings")
     def put_settings(values: dict[str, Any] = Body(...)):
-        st = S.db.set_settings(values)
+        try:
+            st = S.db.set_settings(values)
+        except ValueError as e:
+            bad(e)
         S.bus.publish("settings_updated")
         return st
 

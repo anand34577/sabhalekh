@@ -248,7 +248,7 @@ export function ProgressBar({ value, indeterminate, className }:
   return (
     <div className={clsx("h-1 w-full overflow-hidden rounded-full bg-stroke", className)}
       role="progressbar" aria-valuenow={value != null ? Math.round(value * 100) : undefined}>
-      {indeterminate ? <div className="h-full w-full progress-indeterminate" />
+      {indeterminate ? <div className="h-full progress-indeterminate" />
         : <div className="h-full rounded-full bg-accent transition-[width] duration-300"
           style={{ width: `${Math.max(2, Math.min(100, (value ?? 0) * 100))}%` }} />}
     </div>

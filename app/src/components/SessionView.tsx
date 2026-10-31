@@ -8,6 +8,8 @@ import { get, patch, post, put } from "../lib/api";
 import { clock, date, duration, eta, LANG_LABEL, STAGE_LABEL } from "../lib/format";
 import { confirmDialog, pickSavePath, shell } from "../lib/native";
 import type { SessionDetail } from "../lib/types";
+import { useShallow } from "zustand/react/shallow";
+import { MOD_LABEL, modKey } from "../lib/platform";
 import { useStore } from "../store";
 import { Player } from "./Player";
 import { Transcript } from "./Transcript";
@@ -31,7 +33,8 @@ export function safeName(title: string) {
 export function SessionView({ sessionId, onReprocess, onTags, onDelete }: {
   sessionId: number; onReprocess: () => void; onTags: () => void; onDelete: () => void;
 }) {
-  const { toast, settings, jobs, transcriptVersion, set } = useStore();
+  const { toast, settings, jobs, transcriptVersion, set } = useStore(useShallow((s) => ({
+    toast: s.toast, settings: s.settings, jobs: s.jobs, transcriptVersion: s.transcriptVersion, set: s.set })));
   const [detail, setDetail] = useState<SessionDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState(false);
@@ -66,7 +69,7 @@ export function SessionView({ sessionId, onReprocess, onTags, onDelete }: {
 
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key.toLowerCase() === "f") {
+      if (modKey(e) && e.key.toLowerCase() === "f") {
         e.preventDefault();
         setSearchOpen(true);
         setTimeout(() => searchRef.current?.focus(), 0);
@@ -187,7 +190,7 @@ export function SessionView({ sessionId, onReprocess, onTags, onDelete }: {
                 <IconButton label="Close search" className="h-7 w-7" onClick={() => { setQuery(""); setSearchOpen(false); }}><X size={14} /></IconButton>
               </div>
             ) : (
-              <IconButton label="Find in transcript (Ctrl+F)" onClick={() => { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 0); }}>
+              <IconButton label={`Find in transcript (${MOD_LABEL}+F)`} onClick={() => { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 0); }}>
                 <Search size={17} />
               </IconButton>
             )}

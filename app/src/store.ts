@@ -37,7 +37,7 @@ interface State {
   recording: RecordingStatus;
   toasts: Toast[];
   transcriptVersion: number; // bump to reload the open transcript
-  windowsBuild: number;
+  recordingSupported: boolean; // false where meetings cannot be recorded (not Windows)
   set: (p: Partial<State>) => void;
   select: (id: number | null) => void;
   toast: (t: Omit<Toast, "id">) => void;
@@ -63,13 +63,13 @@ export const useStore = create<State>((set, get) => ({
   recording: { active: false },
   toasts: [],
   transcriptVersion: 0,
-  windowsBuild: 0,
+  recordingSupported: true,
   set: (p) => set(p),
   select: (id) => set({ selectedId: id, view: id ? "session" : "empty" }),
   toast: (t) => {
     const id = toastId++;
     set({ toasts: [...get().toasts, { ...t, id }] });
-    setTimeout(() => get().dismiss(id), t.kind === "error" ? 9000 : 5000);
+    setTimeout(() => get().dismiss(id), t.action ? 15000 : t.kind === "error" ? 9000 : 5000); // a button needs time to be read and used
   },
   dismiss: (id) => set({ toasts: get().toasts.filter((t) => t.id !== id) }),
   refreshSessions: async () => {

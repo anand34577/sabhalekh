@@ -5,6 +5,7 @@ import { get, post, put } from "../lib/api";
 import { bytes } from "../lib/format";
 import { LINKS, openLink, pickFolder, setAutostart, shell } from "../lib/native";
 import type { Device, HardwareStatus, ModelInfo, Settings } from "../lib/types";
+import { hotkeyLabel, isMac, modKey } from "../lib/platform";
 import { useStore } from "../store";
 import { Button, Card, Field, Select, Toggle } from "./ui";
 
@@ -329,14 +330,15 @@ function Info({ k, v }: { k: string; v: string }) {
 function HotkeyInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const [rec, setRec] = useState(false);
   return (
-    <input readOnly value={rec ? "Press keys…" : value.replace("CommandOrControl", "Ctrl")} aria-label="Recording hotkey"
+    <input readOnly value={rec ? "Press keys…" : hotkeyLabel(value)} aria-label="Recording hotkey"
       onFocus={() => setRec(true)} onBlur={() => setRec(false)}
       onKeyDown={(e) => {
         e.preventDefault();
         if (["Control", "Shift", "Alt", "Meta"].includes(e.key)) return;
         if (e.key === "Escape") { (e.target as HTMLInputElement).blur(); return; }
         const parts = [];
-        if (e.ctrlKey) parts.push("CommandOrControl");
+        if (modKey(e)) parts.push("CommandOrControl");
+        if (isMac && e.ctrlKey) parts.push("Control");
         if (e.altKey) parts.push("Alt");
         if (e.shiftKey) parts.push("Shift");
         if (!parts.length) return; // require a modifier for a global hotkey

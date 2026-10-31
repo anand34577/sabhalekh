@@ -18,6 +18,7 @@ import logging
 import os
 import queue
 import struct
+import sys
 import threading
 import time
 import uuid
@@ -84,8 +85,21 @@ class TrackWriter:
 
 
 # ------------------------------------------------------------------ devices
+SUPPORTED = sys.platform == "win32"  # capturing the other participants needs WASAPI loopback
+
+
+def _pyaudio():
+    """PyAudioWPatch, or a clear error where meetings cannot be recorded (importing files still works)."""
+    if not SUPPORTED:
+        raise RecorderError("Recording a meeting is only available on Windows for now. You can still import audio "
+                            "and video files.")
+    import pyaudiowpatch
+
+    return pyaudiowpatch
+
+
 def list_devices() -> dict:
-    import pyaudiowpatch as pyaudio
+    pyaudio = _pyaudio()
 
     p = pyaudio.PyAudio()
     try:
@@ -136,7 +150,7 @@ class _Capture:
             return p.get_device_info_by_index(self.requested)
         if self.kind == "system":
             return p.get_default_wasapi_loopback()
-        import pyaudiowpatch as pyaudio
+        pyaudio = _pyaudio()
 
         wasapi = p.get_host_api_info_by_type(pyaudio.paWASAPI)
         return p.get_device_info_by_index(wasapi["defaultInputDevice"])
@@ -151,7 +165,7 @@ class _Capture:
 
     def open(self, p) -> None:
         import av
-        import pyaudiowpatch as pyaudio
+        pyaudio = _pyaudio()
 
         self.close()
         d = self._resolve(p)
@@ -255,7 +269,7 @@ class Recorder:
 
     def start(self, title: str, mic_device: int | None = None, loopback_device: int | None = None,
               capture_mic: bool = True, capture_system: bool = True) -> dict:
-        import pyaudiowpatch as pyaudio
+        pyaudio = _pyaudio()
 
         import shutil
 
@@ -366,7 +380,7 @@ class Recorder:
                     if not c.alive() or c.default_changed(self._pa):
                         old = c.device_name
                         try:
-                            import pyaudiowpatch as pyaudio
+                            pyaudio = _pyaudio()
 
                             for cc in self._caps.values():
                                 cc.close()
