@@ -163,7 +163,7 @@ smoke-tests the backend, builds the Tauri installer and uploads these files with
 |---|---|
 | `Sabhalekh-Setup-<version>.exe` | Windows 10/11, 64-bit |
 | `Sabhalekh-<version>-macos-arm64.dmg` | macOS, Apple silicon (no Intel build) |
-| `Sabhalekh-<version>-linux-x86_64.deb` and `.AppImage` | Linux, 64-bit |
+| `Sabhalekh-<version>-linux-x86_64.deb` | Linux, 64-bit (Debian, Ubuntu) |
 | `Sabhalekh-ModelPack-Accuracy.zip` | Optional model pack |
 
 The tag must match the version in `tauri.conf.json`. Recording meetings is Windows-only; macOS and Linux import

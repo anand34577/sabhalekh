@@ -123,11 +123,11 @@ jobs:
             os: windows-latest
             native: windows-x86_64-cpu-vulkan
             bundles: nsis
-          # 22.04 keeps the AppImage and .deb usable on older distributions (older glibc)
+          # 22.04 keeps the .deb usable on older distributions (older glibc). AppImage: linuxdeploy failed on CI.
           - name: linux
             os: ubuntu-22.04
             native: linux-x86_64-cpu-vulkan
-            bundles: deb,appimage
+            bundles: deb
           # Apple silicon. GitHub no longer offers Intel Mac runners, so there is no Intel build.
           - name: macos
             os: macos-latest
@@ -186,7 +186,8 @@ jobs:
           mkdir -p bin/transcribe "$RUNNER_TEMP/tc"
           curl -fsSL -o "$RUNNER_TEMP/tc.tar.gz" \
             "https://github.com/handy-computer/transcribe.cpp/releases/download/v${TRANSCRIBE_CPP_VERSION}/transcribe-native-${TRANSCRIBE_CPP_VERSION}-${{ matrix.native }}.tar.gz"
-          tar -xzf "$RUNNER_TEMP/tc.tar.gz" -C "$RUNNER_TEMP/tc"
+          # relative paths: GNU tar on Windows reads "D:\..." as a remote host
+          (cd "$RUNNER_TEMP/tc" && tar -xzf ../tc.tar.gz)
           find "$RUNNER_TEMP/tc" -type f \( -name '*.dll' -o -name '*.so' -o -name '*.dylib' \) -exec cp {} bin/transcribe/ \;
           ls bin/transcribe
           python tools/fetch_models.py --engine-only
@@ -234,7 +235,6 @@ jobs:
       - name: Build the desktop app
         working-directory: app
         env:
-          APPIMAGE_EXTRACT_AND_RUN: "1"
           # ad-hoc signature: Apple silicon refuses to run unsigned native code (there is no paid certificate yet)
           APPLE_SIGNING_IDENTITY: ${{ runner.os == 'macOS' && '-' || '' }}
         run: |
@@ -250,7 +250,6 @@ jobs:
             windows) cp "$(pick "$B/nsis/*-setup.exe")" "dist/Sabhalekh-Setup-$VERSION.exe" ;;
             linux)
               cp "$(pick "$B/deb/*.deb")" "dist/Sabhalekh-$VERSION-linux-x86_64.deb"
-              cp "$(pick "$B/appimage/*.AppImage")" "dist/Sabhalekh-$VERSION-linux-x86_64.AppImage"
               ;;
             macos) cp "$(pick "$B/dmg/*.dmg")" "dist/Sabhalekh-$VERSION-macos-arm64.dmg" ;;
           esac

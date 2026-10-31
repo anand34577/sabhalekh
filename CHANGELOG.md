@@ -9,7 +9,7 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ### Added
 - A **Release** workflow (`.github/workflows/release.yml`) builds the installers on GitHub for Windows, macOS (Apple
-  silicon) and Linux (`.deb` and AppImage) and attaches them, with checksums and the Accuracy model pack, to the
+  silicon) and Linux (`.deb`) and attaches them, with checksums and the Accuracy model pack, to the
   release. Push a `v*` tag, or run it by hand to attach the files to an existing release.
 
 ### Fixed
