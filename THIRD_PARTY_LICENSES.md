@@ -10,6 +10,7 @@ installer was built and tested with.
 |---|---|---|---|
 | NVIDIA **Nemotron-3-Diarization** (`nvidia/Nemotron-3-Diarization`) | snapshot f667ed7 | **OpenMDW-1.1** ([text](licenses/OpenMDW-1.1.txt)) | Bundled as a derived ONNX export (encoder + classifier, dynamically int8-quantized) plus the feature-stacking weights in `frontend.npz`. OpenMDW-1.1 allows commercial and non-commercial use, modification and redistribution; this notice and the license text must accompany redistributed model materials. The *preview* repository (`Nemotron-3-Diarization-preview`) has evaluation-only terms and is **not** used. |
 | NVIDIA **Nemotron 3.5 ASR Streaming 0.6B** (`nvidia/nemotron-3.5-asr-streaming-0.6b`), default speech recognition | GGUF Q8_0 from `handy-computer/nemotron-3.5-asr-streaming-0.6b-gguf` | **OpenMDW-1.1** ([text](licenses/OpenMDW-1.1.txt)) | Bundled as the transcribe.cpp GGUF conversion (Q8_0 quantization), unmodified. Same license and notice obligations as Nemotron-3-Diarization. |
+| Udgam Labs **Shruti** (`udgamlabs/Shruti`, 55M, Hindi / English / Hinglish), optional speech recognition | `shruti.cact` (4-bit) | **Apache-2.0** ([text](licenses/Apache-2.0-cactus-needle.txt)) | Derived from Cactus Compute's Whistle (Apache-2.0), retrained by Udgam Labs. Bundled unmodified together with the `NOTICE` file from the model repository, which must accompany redistributed copies. |
 | OpenAI **Whisper large-v3-turbo** weights (optional, no longer bundled) | openai/whisper-large-v3-turbo | MIT | Converted to CTranslate2 int8 (`ct2-transformers-converter --quantization int8_float16`). |
 | OpenAI **Whisper large-v3** weights (Accuracy model pack) | openai/whisper-large-v3 | MIT | Same conversion. |
 | **Silero VAD** v6 (ONNX, shipped inside faster-whisper) | 6 | MIT | |
@@ -21,6 +22,7 @@ installer was built and tested with.
 | CPython | 3.12 | PSF-2.0 |
 | transcribe.cpp (`transcribe.dll`) and its Python bindings `transcribe-cpp` (handy-computer) | 0.4.0 (commit b61b7f9) | MIT ([text](licenses/transcribe.cpp-MIT.txt)) |
 | ggml (`ggml.dll`, `ggml-base.dll`, `ggml-cpu.dll`, `ggml-vulkan.dll`, vendored in transcribe.cpp) | transcribe.cpp 0.4.0 | MIT ([text](licenses/ggml-MIT.txt)) |
+| Cactus needle (`cactus-needle` Python package and the engine library `libneedle.dll`, Cactus Compute), runs Shruti | 3.2.8 | Apache-2.0 ([text](licenses/Apache-2.0-cactus-needle.txt)) |
 | faster-whisper (SYSTRAN) | 1.2.1 | MIT |
 | CTranslate2 (OpenNMT) | 4.8.3 | MIT |
 | ONNX Runtime (Microsoft) | 1.31.0 | MIT |

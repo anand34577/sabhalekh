@@ -26,6 +26,9 @@ if (-not (Test-Path $py)) { py -3.12 -m venv .venv }
 & $py -m pip install -q --upgrade pip
 & $py -m pip install -q -r backend\requirements-dev.txt
 if ($LASTEXITCODE) { throw "pip install failed" }
+# Cactus needle (pure Python, runs Shruti ASR): --no-deps, the app never downloads models
+& $py -m pip install -q --no-deps cactus-needle==3.2.8
+if ($LASTEXITCODE) { throw "cactus-needle install failed" }
 # transcribe.cpp Python bindings (pure ctypes): --no-deps because the native library is bin\transcribe\transcribe.dll
 & $py -c "import importlib.util, sys; sys.exit(importlib.util.find_spec('transcribe_cpp') is None)"
 if ($LASTEXITCODE) {
@@ -69,6 +72,14 @@ $tcd = Join-Path $build "bin\transcribe"
 Remove-Item -Recurse -Force $tcd -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $tcd | Out-Null
 Copy-Item "bin\transcribe\transcribe.dll", "bin\transcribe\ggml.dll", "bin\transcribe\ggml-base.dll", "bin\transcribe\ggml-cpu.dll", "bin\transcribe\ggml-vulkan.dll" $tcd -Force
+
+# Shruti ASR runtime: the Cactus needle engine library (the model itself is models\asr\shruti)
+$nd = Join-Path $build "bin\needle"
+Remove-Item -Recurse -Force $nd -ErrorAction SilentlyContinue
+if (Test-Path "bin\needle\libneedle.dll") {
+    New-Item -ItemType Directory -Force $nd | Out-Null
+    Copy-Item "bin\needle\libneedle.dll" $nd -Force
+} else { Write-Warning "bin\needle\libneedle.dll missing: Shruti will be unavailable (tools\fetch_models.py --with-shruti)" }
 
 # NVIDIA cuBLAS is not shipped: it is proprietary, and only the optional Whisper packs could use it.
 Remove-Item -Recurse -Force (Join-Path $build "bin\cuda"), (Join-Path $build "bin\licenses") -ErrorAction SilentlyContinue
