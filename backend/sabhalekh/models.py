@@ -55,7 +55,7 @@ def _transcribe_cpp_installed() -> bool:
     import importlib.util
     import os
 
-    lib = os.environ.get("TRANSCRIBE_LIBRARY") or str(config.TRANSCRIBE_LIB_DIR / "transcribe.dll")
+    lib = os.environ.get("TRANSCRIBE_LIBRARY") or str(config.TRANSCRIBE_LIB_DIR / config.TRANSCRIBE_LIB_NAME)
     return Path(lib).is_file() and importlib.util.find_spec("transcribe_cpp") is not None
 
 
@@ -119,9 +119,9 @@ class ModelRegistry:
         if missing:
             return False, f"missing files: {', '.join(missing)}"
         if m["engine"] == "needle-whistle" and not _needle_installed():
-            return False, "the Shruti runtime (bin/needle/libneedle.dll) is missing; reinstall Sabhalekh"
+            return False, f"the Shruti runtime (bin/needle/{config.NEEDLE_LIB_NAME}) is missing; reinstall Sabhalekh"
         if m["engine"] == "transcribe-cpp" and not _transcribe_cpp_installed():
-            return False, "the transcribe.cpp runtime (bin/transcribe/transcribe.dll) is missing; reinstall Sabhalekh"
+            return False, f"the transcribe.cpp runtime (bin/transcribe/{config.TRANSCRIBE_LIB_NAME}) is missing; reinstall Sabhalekh"
         bad = [f for f in self.bad_files if f.startswith(m["dir"].replace("\\", "/") + "/")]
         if bad:
             return False, f"checksum mismatch: {', '.join(bad)} (reinstall or re-import the model pack)"

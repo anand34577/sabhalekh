@@ -1,7 +1,7 @@
 """Udgam Labs Shruti (55M, Hindi / English / Hinglish) on the Cactus "needle" engine.
 
 Shruti is a Whistle model retrained on Indian speech: one 29.5 MB `shruti.cact` file, run by `needle.Whistle` through
-the native engine library (`libneedle.dll`). Both ship with the app (`models/asr/shruti`, `bin/needle`); nothing is
+the native engine library (`libneedle`). Both ship with the app (`models/asr/shruti`, `bin/needle`); nothing is
 fetched at run time, and the package's anonymous usage statistics are switched off before it is imported.
 
 What the model gives, and what is done with it here:
@@ -31,7 +31,7 @@ from .base import ASROptions, ASRSegment, AudioReader, Chunk, OutOfMemory, Word
 
 log = logging.getLogger("sabhalekh.asr")
 
-LIB_NAME = "libneedle.dll"
+LIB_NAME = config.NEEDLE_LIB_NAME
 LANGS = ("hi", "en")
 SAMPLE_RATE = 16000
 MIN_SAMPLES = 1600  # < 0.1 s of 16 kHz audio: nothing to decode

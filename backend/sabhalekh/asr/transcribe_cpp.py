@@ -42,7 +42,7 @@ def _library():
     """Import transcribe_cpp with the bundled native library (<app>/bin/transcribe) unless one is configured."""
     global _lib_ready
     if not _lib_ready:
-        bundled = config.TRANSCRIBE_LIB_DIR / "transcribe.dll"
+        bundled = config.TRANSCRIBE_LIB_DIR / config.TRANSCRIBE_LIB_NAME
         if not os.environ.get("TRANSCRIBE_LIBRARY") and bundled.exists():
             os.environ["TRANSCRIBE_LIBRARY"] = str(bundled)
         if config.TRANSCRIBE_LIB_DIR.is_dir():

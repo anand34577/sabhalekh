@@ -50,6 +50,7 @@ $bm = Join-Path $build "models"
 Remove-Item -Recurse -Force $bm -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force "$bm\asr", "$bm\diarization" | Out-Null
 Copy-Item -Recurse $asr "$bm\asr\"
+if (Test-Path "models\asr\shruti") { Copy-Item -Recurse "models\asr\shruti" "$bm\asr\" }
 Copy-Item -Recurse "models\diarization\nemotron3" "$bm\diarization\"
 & $py tools\make_manifest.py manifest $bm
 if ($LASTEXITCODE) { throw "manifest failed" }

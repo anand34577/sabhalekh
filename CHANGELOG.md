@@ -5,6 +5,19 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-10-31
+
+### Added
+- A **Release** workflow (`.github/workflows/release.yml`) builds the installers on GitHub for Windows, macOS (Apple
+  silicon) and Linux (`.deb` and AppImage) and attaches them, with checksums and the Accuracy model pack, to the
+  release. Push a `v*` tag, or run it by hand to attach the files to an existing release.
+
+### Fixed
+- The Nemotron and Shruti runtimes are found under their native names on macOS and Linux (`.dylib`, `.so`), not only
+  as `.dll`, and the data folder follows each system's convention (`~/Library/Application Support/Sabhalekh`,
+  `~/.local/share/Sabhalekh`).
+- `installeruild.ps1` now ships the Shruti model, which the 1.3.0 build script left out.
+
 ## [1.3.0] - 2026-10-31
 
 ### Changed

@@ -4,6 +4,7 @@
 # <app>/bin/transcribe (transcribe.cpp + ggml, Nemotron ASR) and <app>/bin/needle (Shruti ASR), where sabhalekh.config finds them.
 # NVIDIA cuBLAS is never bundled (proprietary); see sabhalekh.hardware._add_cuda_dll_dirs.
 import os
+import sys
 
 from PyInstaller.utils.hooks import collect_data_files, collect_dynamic_libs
 
@@ -16,7 +17,8 @@ datas += collect_data_files("fpdf")
 binaries = []
 binaries += collect_dynamic_libs("ctranslate2")
 binaries += collect_dynamic_libs("onnxruntime")
-binaries += collect_dynamic_libs("pyaudiowpatch")
+if sys.platform == "win32":
+    binaries += collect_dynamic_libs("pyaudiowpatch")
 
 hidden = [
     "uvicorn.protocols.http.h11_impl", "uvicorn.protocols.websockets.websockets_sansio_impl", "uvicorn.lifespan.on",
@@ -45,7 +47,7 @@ exe = EXE(
     exclude_binaries=True,
     name="sabhalekh-backend",
     console=True,          # the shell starts it with CREATE_NO_WINDOW; a console app keeps stdout for the handshake
-    icon=os.path.join(here, "..", "app", "src-tauri", "icons", "icon.ico"),
+    icon=os.path.join(here, "..", "app", "src-tauri", "icons", "icon.ico") if sys.platform == "win32" else None,
     upx=False,
 )
 coll = COLLECT(exe, a.binaries, a.datas, name="backend", upx=False)

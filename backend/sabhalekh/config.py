@@ -4,7 +4,8 @@ App directory (read-only at runtime):
     models/   ASR, VAD and diarization models + models/manifest.json (sha256 of every file)
     fonts/    Noto Sans + Noto Sans Devanagari (PDF/DOCX export)
     bin/      transcribe/ (transcribe.cpp + ggml for Nemotron ASR), needle/ (engine for Shruti ASR)
-Data directory (%APPDATA%/Sabhalekh by default):
+Data directory (%APPDATA%/Sabhalekh on Windows, ~/Library/Application Support/Sabhalekh on macOS,
+~/.local/share/Sabhalekh on Linux by default):
     sabhalekh.db, sessions/<id>/..., recordings-in-progress/, logs/, models/ (imported Offline Model Packs),
     cuda/ (optional: NVIDIA cuBLAS, lets Whisper model packs use an NVIDIA GPU)
 """
@@ -50,7 +51,12 @@ def _data_dir() -> Path:
     env = os.environ.get("SABHALEKH_DATA_DIR")
     if env:
         return plain_path(plain_path(env).resolve())
-    base = Path(os.environ.get("APPDATA") or str(Path.home() / "AppData" / "Roaming"))
+    if sys.platform == "win32":
+        base = Path(os.environ.get("APPDATA") or str(Path.home() / "AppData" / "Roaming"))
+    elif sys.platform == "darwin":
+        base = Path.home() / "Library" / "Application Support"
+    else:
+        base = Path(os.environ.get("XDG_DATA_HOME") or str(Path.home() / ".local" / "share"))
     return _adopt_legacy_data(base / LEGACY_APP_NAME, base / APP_NAME)
 
 
@@ -73,11 +79,15 @@ def _adopt_legacy_data(old: Path, new: Path) -> Path:
     return new
 
 
+SHLIB_EXT = ".dll" if sys.platform == "win32" else ".dylib" if sys.platform == "darwin" else ".so"
+TRANSCRIBE_LIB_NAME = "transcribe.dll" if sys.platform == "win32" else f"libtranscribe{SHLIB_EXT}"
+NEEDLE_LIB_NAME = f"libneedle{SHLIB_EXT}"
+
 APP_DIR = _app_dir()
 MODELS_DIR = APP_DIR / "models"
 FONTS_DIR = APP_DIR / "fonts"
-TRANSCRIBE_LIB_DIR = APP_DIR / "bin" / "transcribe"  # transcribe.dll + ggml (CPU, Vulkan) for Nemotron ASR
-NEEDLE_LIB_DIR = APP_DIR / "bin" / "needle"  # libneedle.dll for Shruti ASR
+TRANSCRIBE_LIB_DIR = APP_DIR / "bin" / "transcribe"  # transcribe.cpp + ggml (CPU, Vulkan/Metal) for Nemotron ASR
+NEEDLE_LIB_DIR = APP_DIR / "bin" / "needle"  # libneedle for Shruti ASR
 DATA_DIR = _data_dir()
 DB_PATH = DATA_DIR / "sabhalekh.db"
 SESSIONS_DIR = DATA_DIR / "sessions"

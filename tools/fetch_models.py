@@ -70,25 +70,37 @@ def shruti():
                 if name == "shruti.cact":
                     raise
                 print(f"warning: {name} not downloaded ({e}); copy it from the model page before releasing")
-    lib_dir = os.path.join(ROOT, "bin", "needle")
-    if not os.path.exists(os.path.join(lib_dir, "libneedle.dll")):
-        from needle.agent import fetch
 
+
+def needle_engine():
+    """The needle engine library for this OS and CPU (bin/needle), the one Shruti runs on."""
+    from needle.agent import fetch
+
+    lib_dir = os.path.join(ROOT, "bin", "needle")
+    name = fetch.lib_name(generation=3)
+    if not os.path.exists(os.path.join(lib_dir, name)):
         os.makedirs(lib_dir, exist_ok=True)
-        path = fetch.fetch_library(dest_dir=lib_dir, tag="win_amd64", generation=3)
+        path = fetch.fetch_library(dest_dir=lib_dir, generation=3)
         print("engine library:", path)
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--with-shruti", action="store_true")
+    ap.add_argument("--with-shruti", action="store_true", help="also fetch the engine library for this OS")
+    ap.add_argument("--no-engine", action="store_true", help="with --with-shruti: the model only, not the engine library")
+    ap.add_argument("--engine-only", action="store_true", help="only the needle engine library for this OS")
     ap.add_argument("--with-large-v3", action="store_true")
     ap.add_argument("--with-turbo", action="store_true")
     ap.add_argument("--with-small", action="store_true")
     a = ap.parse_args()
+    if a.engine_only:
+        needle_engine()
+        return
     nemotron_asr()
     if a.with_shruti:
         shruti()
+        if not a.no_engine:
+            needle_engine()
     if a.with_turbo:
         whisper("large-v3-turbo")
     if a.with_large_v3:
