@@ -149,5 +149,25 @@ A `.gguf` model runs on transcribe.cpp (`--accel gpu|igpu|cpu`); a CTranslate2 f
    gh release create v1.2.0 dist\Sabhalekh-Setup-1.2.0.exe dist\Sabhalekh-ModelPack-Accuracy.zip dist\SHA256SUMS.txt --title "Sabhalekh 1.2.0" --notes-file notes.md
    ```
 
-Release files are built locally because the models are too large for the repository and for CI runners. The
-checksums in `SHA256SUMS.txt` let anyone verify what they download.
+### Releasing with GitHub Actions
+
+The **Release** workflow does steps 3 and 4 for Windows, macOS and Linux. Push the tag (`git tag -a v1.4.0 -m
+"Sabhalekh 1.4.0"` then `git push origin v1.4.0`), or open *Actions → Release → Run workflow* and enter an existing
+tag to attach the files to that release. Leave the tag empty to only test the build; the installers are then kept as
+workflow artifacts for a week.
+
+It converts the models once (cached), downloads the prebuilt transcribe.cpp runtime for each platform, freezes and
+smoke-tests the backend, builds the Tauri installer and uploads these files with a combined `SHA256SUMS.txt`:
+
+| File | Platform |
+|---|---|
+| `Sabhalekh-Setup-<version>.exe` | Windows 10/11, 64-bit |
+| `Sabhalekh-<version>-macos-arm64.dmg` | macOS, Apple silicon (no Intel build) |
+| `Sabhalekh-<version>-linux-x86_64.deb` and `.AppImage` | Linux, 64-bit |
+| `Sabhalekh-ModelPack-Accuracy.zip` | Optional model pack |
+
+The tag must match the version in `tauri.conf.json`. Recording meetings is Windows-only; macOS and Linux import
+audio and video. The macOS and Windows builds are not code-signed yet.
+
+Building locally with `installeruild.ps1` still works; the checksums in `SHA256SUMS.txt` let anyone verify what they
+download.

@@ -1,0 +1,313 @@
+name: Release
+
+# Builds the installers for Windows, macOS and Linux and attaches them to a GitHub release.
+#
+#   * Push a tag such as v1.4.0: builds everything and creates the release (notes come from CHANGELOG.md).
+#   * Run manually (Actions -> Release -> Run workflow):
+#       - leave "tag" empty to only build; the installers are kept as workflow artifacts for a week;
+#       - enter an existing tag (for example v1.3.0) to attach the installers to that release.
+#
+# The models are not in the repository. The "models" job converts them once (cached), the build jobs reuse them, and
+# the transcribe.cpp runtime comes from that project's own release (prebuilt for every platform).
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish to (empty: only build)"
+        required: false
+        default: ""
+      model_pack:
+        description: "Also build the Accuracy model pack (Whisper large-v3, about 1.4 GB)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  TAG: ${{ inputs.tag || (startsWith(github.ref, 'refs/tags/') && github.ref_name) || '' }}
+  TRANSCRIBE_CPP_VERSION: "0.4.0"
+  PYTHON_VERSION: "3.12"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  models:
+    name: Convert the models
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Restore converted models
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: models
+          key: models-v1-${{ hashFiles('tools/fetch_models.py', 'tools/export_nemotron_onnx.py', 'tools/export_nemotron_frontend.py', 'tools/quantize_nemotron.py', 'tools/requirements-build-models.txt') }}
+
+      - name: Convert the models
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -r tools/requirements-build-models.txt
+          python tools/fetch_models.py --with-shruti --no-engine
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: models
+          path: models
+          retention-days: 1
+          compression-level: 0
+
+  model-pack:
+    name: Accuracy model pack
+    needs: models
+    if: ${{ github.event.inputs.model_pack != 'false' && (inputs.tag || startsWith(github.ref, 'refs/tags/')) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android
+
+      - name: Restore converted models
+        uses: actions/cache/restore@v4
+        with:
+          path: models
+          key: models-v1-${{ hashFiles('tools/fetch_models.py', 'tools/export_nemotron_onnx.py', 'tools/export_nemotron_frontend.py', 'tools/quantize_nemotron.py', 'tools/requirements-build-models.txt') }}
+
+      - name: Convert Whisper large-v3 and build the pack
+        run: |
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -r tools/requirements-build-models.txt
+          python tools/fetch_models.py --with-large-v3
+          mkdir -p dist
+          python tools/make_manifest.py pack dist/Sabhalekh-ModelPack-Accuracy Accuracy whisper-large-v3-int8:models/asr/whisper-large-v3-int8
+          python -c "import shutil; shutil.make_archive('dist/Sabhalekh-ModelPack-Accuracy', 'zip', 'dist', 'Sabhalekh-ModelPack-Accuracy')"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: model-pack
+          path: dist/Sabhalekh-ModelPack-Accuracy.zip
+          retention-days: 1
+          compression-level: 0
+
+  build:
+    name: "Installer (${{ matrix.name }})"
+    needs: models
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows
+            os: windows-latest
+            native: windows-x86_64-cpu-vulkan
+            bundles: nsis
+          # 22.04 keeps the AppImage and .deb usable on older distributions (older glibc)
+          - name: linux
+            os: ubuntu-22.04
+            native: linux-x86_64-cpu-vulkan
+            bundles: deb,appimage
+          # Apple silicon. GitHub no longer offers Intel Mac runners, so there is no Intel build.
+          - name: macos
+            os: macos-latest
+            native: macos-arm64-metal
+            bundles: app,dmg
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Read the version
+        run: |
+          VERSION=$(node -p "require('./app/src-tauri/tauri.conf.json').version")
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          if [ -n "$TAG" ] && [ "$TAG" != "v$VERSION" ]; then
+            echo "::error::tag $TAG does not match the app version $VERSION (app/src-tauri/tauri.conf.json)"
+            exit 1
+          fi
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Linux system libraries for Tauri
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libssl-dev patchelf xdg-utils
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: app/src-tauri
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: models
+          path: models
+
+      - name: Python dependencies
+        run: |
+          python -m pip install -r backend/requirements-dev.txt
+          # Not on PyPI, or pulling a downloader the app must never use: installed without their dependencies.
+          python -m pip install --no-deps cactus-needle==3.2.8 \
+            "https://github.com/handy-computer/transcribe.cpp/releases/download/v${TRANSCRIBE_CPP_VERSION}/transcribe_cpp-${TRANSCRIBE_CPP_VERSION}-py3-none-any.whl"
+
+      - name: Native speech runtimes (transcribe.cpp for Nemotron, needle for Shruti)
+        run: |
+          mkdir -p bin/transcribe "$RUNNER_TEMP/tc"
+          curl -fsSL -o "$RUNNER_TEMP/tc.tar.gz" \
+            "https://github.com/handy-computer/transcribe.cpp/releases/download/v${TRANSCRIBE_CPP_VERSION}/transcribe-native-${TRANSCRIBE_CPP_VERSION}-${{ matrix.native }}.tar.gz"
+          tar -xzf "$RUNNER_TEMP/tc.tar.gz" -C "$RUNNER_TEMP/tc"
+          find "$RUNNER_TEMP/tc" -type f \( -name '*.dll' -o -name '*.so' -o -name '*.dylib' \) -exec cp {} bin/transcribe/ \;
+          ls bin/transcribe
+          python tools/fetch_models.py --engine-only
+          ls bin/needle
+
+      - name: Stage the models
+        run: |
+          rm -rf build/models
+          mkdir -p build/models/asr build/models/diarization
+          cp -R models/asr/nemotron-3.5-asr-0.6b build/models/asr/
+          cp -R models/asr/shruti build/models/asr/
+          cp -R models/diarization/nemotron3 build/models/diarization/
+          find build/models -name .cache -type d -prune -exec rm -rf {} +
+          python tools/make_manifest.py manifest build/models
+
+      - name: Freeze the backend (PyInstaller)
+        run: python -m PyInstaller backend/sabhalekh-backend.spec --distpath build --workpath build/pyinstaller-work -y --log-level WARN
+
+      - name: Stage the native runtimes and licenses
+        run: |
+          mkdir -p build/bin
+          cp -R bin/transcribe build/bin/transcribe
+          cp -R bin/needle build/bin/needle
+          cp -R licenses build/bin/licenses
+
+      # The frozen backend must start, answer /api/health and find its runtimes before it goes into an installer.
+      - name: Backend smoke test
+        run: |
+          ROOT="$PWD"
+          EXE=build/backend/sabhalekh-backend
+          if [ "$RUNNER_OS" = "Windows" ]; then ROOT=$(cygpath -m "$PWD"); EXE=$EXE.exe; fi
+          export SABHALEKH_APP_DIR="$ROOT/build" SABHALEKH_DATA_DIR="$ROOT/build/smoke-data"
+          TOKEN=$(python -c "import uuid; print(uuid.uuid4().hex)")
+          "$EXE" --token "$TOKEN" --port 8799 > build/smoke.out 2> build/smoke.err &
+          PID=$!
+          ok=0
+          for i in $(seq 1 90); do
+            sleep 1
+            if curl -fsS -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8799/api/health | grep -Eq '"ok": ?true'; then ok=1; break; fi
+          done
+          if [ "$RUNNER_OS" = "Windows" ]; then taskkill //F //IM sabhalekh-backend.exe || true; else kill "$PID" || true; fi
+          if [ "$ok" != 1 ]; then echo "--- stderr"; tail -n 60 build/smoke.err; echo "--- stdout"; tail -n 30 build/smoke.out; exit 1; fi
+          echo "frozen backend OK"
+
+      - name: Build the desktop app
+        working-directory: app
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: "1"
+          # ad-hoc signature: Apple silicon refuses to run unsigned native code (there is no paid certificate yet)
+          APPLE_SIGNING_IDENTITY: ${{ runner.os == 'macOS' && '-' || '' }}
+        run: |
+          npm ci
+          npx tauri build --bundles ${{ matrix.bundles }}
+
+      - name: Collect the installers
+        run: |
+          B=app/src-tauri/target/release/bundle
+          pick() { local f; f=$(ls $1 2>/dev/null | head -n 1); [ -n "$f" ] || { echo "::error::no file matches $1"; exit 1; }; echo "$f"; }
+          mkdir -p dist
+          case "${{ matrix.name }}" in
+            windows) cp "$(pick "$B/nsis/*-setup.exe")" "dist/Sabhalekh-Setup-$VERSION.exe" ;;
+            linux)
+              cp "$(pick "$B/deb/*.deb")" "dist/Sabhalekh-$VERSION-linux-x86_64.deb"
+              cp "$(pick "$B/appimage/*.AppImage")" "dist/Sabhalekh-$VERSION-linux-x86_64.AppImage"
+              ;;
+            macos) cp "$(pick "$B/dmg/*.dmg")" "dist/Sabhalekh-$VERSION-macos-arm64.dmg" ;;
+          esac
+          ls -l dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ matrix.name }}
+          path: dist/*
+          retention-days: 7
+          compression-level: 0
+          if-no-files-found: error
+
+  publish:
+    name: Publish the release
+    needs: [build, model-pack]
+    # model-pack is skipped when not requested; build must have succeeded
+    if: ${{ !cancelled() && needs.build.result == 'success' && (needs.model-pack.result == 'success' || needs.model-pack.result == 'skipped') && (inputs.tag || startsWith(github.ref, 'refs/tags/')) }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: installer-*
+          path: dist
+          merge-multiple: true
+
+      - uses: actions/download-artifact@v4
+        if: needs.model-pack.result == 'success'
+        with:
+          name: model-pack
+          path: dist
+
+      - name: Checksums
+        working-directory: dist
+        run: |
+          sha256sum Sabhalekh-* > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Create or update the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${TAG#v}"
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+            # The notes of a release published before its installers existed say they are not attached yet.
+            gh release view "$TAG" --json body --jq .body > notes.md
+            if grep -q "not attached to this page yet" notes.md; then
+              grep -v "not attached to this page yet" notes.md > notes-new.md
+              gh release edit "$TAG" --notes-file notes-new.md
+            fi
+          else
+            awk -v v="$VERSION" '$0 ~ "^## \\[" v "\\]" {f=1; next} /^## \[/ {f=0} f' CHANGELOG.md > notes.md
+            [ -s notes.md ] || echo "See CHANGELOG.md." > notes.md
+            gh release create "$TAG" dist/* --verify-tag --title "Sabhalekh $VERSION" --notes-file notes.md
+          fi
