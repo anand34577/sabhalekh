@@ -24,7 +24,7 @@ You don't need the other files to get started:
 | `SHA256SUMS.txt` | Checksums, if you want to verify your download (see below). |
 
 **macOS (Apple silicon) and Linux:** the release also has `Sabhalekh-x.y.z-macos-arm64.dmg`,
-`Sabhalekh-x.y.z-linux-x86_64.deb` and `Sabhalekh-x.y.z-linux-x86_64.AppImage`. These platforms can import audio and
+`Sabhalekh-x.y.z-linux-x86_64.deb`. These platforms can import audio and
 video files but cannot record a meeting yet. The macOS app isn't signed: after copying it to Applications, right-click
 it and choose **Open** the first time (or run `xattr -cr /Applications/Sabhalekh.app`).
 
