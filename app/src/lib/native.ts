@@ -4,7 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { disable as autostartDisable, enable as autostartEnable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { ask, open, save } from "@tauri-apps/plugin-dialog";
-import { register, unregisterAll } from "@tauri-apps/plugin-global-shortcut";
+import { register, unregister } from "@tauri-apps/plugin-global-shortcut";
 import { isPermissionGranted, requestPermission, sendNotification } from "@tauri-apps/plugin-notification";
 import { openPath, openUrl, revealItemInDir } from "@tauri-apps/plugin-opener";
 import { isTauri } from "./api";
@@ -58,18 +58,43 @@ export async function notify(title: string, body: string) {
   }
 }
 
-export async function setHotkey(accelerator: string, onPress: () => void): Promise<string | null> {
-  if (!isTauri()) return null;
-  try {
-    await unregisterAll();
-    if (!accelerator) return null;
-    await register(accelerator, (e) => {
-      if (e.state === "Pressed") onPress();
-    });
-    return null;
-  } catch (e) {
-    return String(e);
-  }
+let hotkeyQueue: Promise<unknown> = Promise.resolve();
+let hotkeyHandler: () => void = () => {};
+let hotkeyActive: string | null = null;
+
+/**
+ * Registers the global recording hotkey. Calls are queued, because the UI asks again whenever settings change (and
+ * twice at startup in development): two overlapping register calls made the second fail with "already registered".
+ * Resolves to null on success, or a message the user can act on.
+ */
+export function setHotkey(accelerator: string, onPress: () => void): Promise<string | null> {
+  hotkeyHandler = onPress; // the key always calls the latest handler
+  const run = async (): Promise<string | null> => {
+    if (!isTauri()) return null;
+    try {
+      if (hotkeyActive && hotkeyActive !== accelerator) {
+        await unregister(hotkeyActive).catch(() => {});
+        hotkeyActive = null;
+      }
+      if (!accelerator || hotkeyActive === accelerator) return null;
+      const press = (e: { state: string }) => { if (e.state === "Pressed") hotkeyHandler(); };
+      try {
+        await register(accelerator, press);
+      } catch (e) {
+        // "already registered" by this app (the page was reloaded, the shell kept the key): take it over
+        if (!/already registered/i.test(String(e))) throw e;
+        await unregister(accelerator).catch(() => {});
+        await register(accelerator, press);
+      }
+      hotkeyActive = accelerator;
+      return null;
+    } catch {
+      return "Another program on this PC is already using it.";
+    }
+  };
+  const next = hotkeyQueue.then(run, run);
+  hotkeyQueue = next;
+  return next;
 }
 
 export async function setAutostart(on: boolean) {

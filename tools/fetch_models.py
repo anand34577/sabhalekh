@@ -9,6 +9,7 @@ Creates under models/:
     asr/whisper-large-v3-int8/         --with-large-v3 (Accuracy model pack, translation)    ~1.5 GB
     asr/whisper-large-v3-turbo-int8/   --with-turbo (optional fallback)                      ~0.8 GB
     asr/whisper-small-int8/            --with-small (optional)                                ~0.25 GB
+    asr/shruti/shruti.cact             --with-shruti (Hindi/English/Hinglish; needs cactus-needle)  ~0.03 GB
     diarization/nemotron3/encoder_int8.onnx + frontend.npz                                   ~0.12 GB
 Nemotron 3.5 ASR comes pre-converted from handy-computer/nemotron-3.5-asr-streaming-0.6b-gguf (transcribe.cpp).
 The app itself never downloads anything.
@@ -52,13 +53,42 @@ def nemotron_asr():
     hf_hub_download(NEMOTRON_REPO, NEMOTRON_FILE, local_dir=out)
 
 
+SHRUTI_REPO = "udgamlabs/Shruti"
+
+
+def shruti():
+    """Shruti (Hindi/English/Hinglish, 29.5 MB) and the needle engine library that runs it (bin/needle)."""
+    out = os.path.join(ROOT, "models", "asr", "shruti")
+    if not os.path.exists(os.path.join(out, "shruti.cact")):
+        from huggingface_hub import hf_hub_download
+
+        os.makedirs(out, exist_ok=True)
+        for name in ("shruti.cact", "NOTICE"):  # the Apache-2.0 NOTICE must ship with the model
+            try:
+                hf_hub_download(SHRUTI_REPO, name, local_dir=out)
+            except Exception as e:  # noqa: BLE001
+                if name == "shruti.cact":
+                    raise
+                print(f"warning: {name} not downloaded ({e}); copy it from the model page before releasing")
+    lib_dir = os.path.join(ROOT, "bin", "needle")
+    if not os.path.exists(os.path.join(lib_dir, "libneedle.dll")):
+        from needle.agent import fetch
+
+        os.makedirs(lib_dir, exist_ok=True)
+        path = fetch.fetch_library(dest_dir=lib_dir, tag="win_amd64", generation=3)
+        print("engine library:", path)
+
+
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--with-shruti", action="store_true")
     ap.add_argument("--with-large-v3", action="store_true")
     ap.add_argument("--with-turbo", action="store_true")
     ap.add_argument("--with-small", action="store_true")
     a = ap.parse_args()
     nemotron_asr()
+    if a.with_shruti:
+        shruti()
     if a.with_turbo:
         whisper("large-v3-turbo")
     if a.with_large_v3:

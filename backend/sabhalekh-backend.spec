@@ -1,7 +1,7 @@
 # PyInstaller spec for the Sabhalekh backend sidecar (onedir: fast start, no temp extraction).
 #   pyinstaller backend/sabhalekh-backend.spec --distpath build --workpath build/pyinstaller-work -y
 # Models, fonts and native runtimes are NOT bundled here; the installer places them in <app>/models, <app>/fonts,
-# <app>/bin/transcribe (transcribe.cpp + ggml, Nemotron ASR), where sabhalekh.config finds them.
+# <app>/bin/transcribe (transcribe.cpp + ggml, Nemotron ASR) and <app>/bin/needle (Shruti ASR), where sabhalekh.config finds them.
 # NVIDIA cuBLAS is never bundled (proprietary); see sabhalekh.hardware._add_cuda_dll_dirs.
 import os
 
@@ -21,6 +21,7 @@ binaries += collect_dynamic_libs("pyaudiowpatch")
 hidden = [
     "uvicorn.protocols.http.h11_impl", "uvicorn.protocols.websockets.websockets_sansio_impl", "uvicorn.lifespan.on",
     "uvicorn.loops.asyncio", "pynvml", "uharfbuzz", "fontTools.ttLib", "transcribe_cpp",
+    "needle", "needle.agent.whistle",
 ]
 
 excludes = [

@@ -3,7 +3,7 @@
 App directory (read-only at runtime):
     models/   ASR, VAD and diarization models + models/manifest.json (sha256 of every file)
     fonts/    Noto Sans + Noto Sans Devanagari (PDF/DOCX export)
-    bin/      transcribe/ (transcribe.cpp + ggml for Nemotron ASR)
+    bin/      transcribe/ (transcribe.cpp + ggml for Nemotron ASR), needle/ (engine for Shruti ASR)
 Data directory (%APPDATA%/Sabhalekh by default):
     sabhalekh.db, sessions/<id>/..., recordings-in-progress/, logs/, models/ (imported Offline Model Packs),
     cuda/ (optional: NVIDIA cuBLAS, lets Whisper model packs use an NVIDIA GPU)
@@ -77,6 +77,7 @@ APP_DIR = _app_dir()
 MODELS_DIR = APP_DIR / "models"
 FONTS_DIR = APP_DIR / "fonts"
 TRANSCRIBE_LIB_DIR = APP_DIR / "bin" / "transcribe"  # transcribe.dll + ggml (CPU, Vulkan) for Nemotron ASR
+NEEDLE_LIB_DIR = APP_DIR / "bin" / "needle"  # libneedle.dll for Shruti ASR
 DATA_DIR = _data_dir()
 DB_PATH = DATA_DIR / "sabhalekh.db"
 SESSIONS_DIR = DATA_DIR / "sessions"

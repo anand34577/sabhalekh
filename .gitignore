@@ -20,6 +20,7 @@ models/diarization/nemotron3/*.onnx
 models/diarization/nemotron3/*.npz
 models/manifest.json
 bin/transcribe/
+bin/needle/
 
 # local tools, editors and secrets
 .claude/

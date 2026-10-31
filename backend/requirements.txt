@@ -3,6 +3,8 @@
 # Nemotron-3-Diarization and Silero VAD on ONNX Runtime.
 # transcribe-cpp 0.4.0 (Python bindings) is not on PyPI yet: pip install --no-deps <transcribe.cpp>/bindings/python
 # (installer\build.ps1 does this); its native library ships in bin/transcribe/.
+# cactus-needle 3.2.8 (runs Shruti ASR) is installed with --no-deps by installer\build.ps1: its only dependency,
+# huggingface_hub, downloads models, which the app never does; the engine library ships in bin/needle/.
 faster-whisper==1.2.1
 ctranslate2==4.8.3
 onnxruntime==1.31.0
@@ -11,7 +13,7 @@ numpy==2.5.4
 fastapi==0.143.2
 uvicorn==0.54.0
 websockets==17.2
-PyAudioWPatch==0.2.12.9
+PyAudioWPatch==0.2.12.9; sys_platform == "win32"
 psutil==7.2.2
 python-docx==1.2.0
 fpdf2==2.8.9

@@ -65,7 +65,11 @@ fn backend_command(app: &AppHandle) -> Result<(PathBuf, Vec<String>, PathBuf), S
         // development: the repo's virtualenv runs backend/run_backend.py
         let repo = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..").join("..");
         let repo = plain_path(repo.canonicalize().map_err(|e| format!("repo root: {e}"))?);
-        let python = repo.join(".venv").join("Scripts").join("python.exe");
+        let python = if cfg!(windows) {
+            repo.join(".venv").join("Scripts").join("python.exe")
+        } else {
+            repo.join(".venv").join("bin").join("python")
+        };
         let script = repo.join("backend").join("run_backend.py");
         if !python.exists() {
             return Err(format!("development Python not found: {}", python.display()));
@@ -73,7 +77,7 @@ fn backend_command(app: &AppHandle) -> Result<(PathBuf, Vec<String>, PathBuf), S
         return Ok((python, vec![script.to_string_lossy().into_owned()], repo));
     }
     let res = plain_path(app.path().resource_dir().map_err(|e| format!("resource dir: {e}"))?);
-    let exe = res.join("backend").join("sabhalekh-backend.exe");
+    let exe = res.join("backend").join(if cfg!(windows) { "sabhalekh-backend.exe" } else { "sabhalekh-backend" });
     if !exe.exists() {
         return Err(format!("backend not found: {}", exe.display()));
     }

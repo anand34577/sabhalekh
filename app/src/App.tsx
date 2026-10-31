@@ -7,16 +7,25 @@ import { RecordingView } from "./components/RecordingView";
 import { SessionView } from "./components/SessionView";
 import { SettingsView } from "./components/SettingsView";
 import { Sidebar } from "./components/Sidebar";
+import { TitleBar } from "./components/TitleBar";
 import { Button, Toasts } from "./components/ui";
 import { connectBackend, get, isTauri, openEvents, post, put } from "./lib/api";
 import { clock } from "./lib/format";
+import { hotkeyLabel, MOD_LABEL, modKey } from "./lib/platform";
 import { confirmDialog, notify, onFileDrop, onTray, pickMediaFiles, setHotkey, shell } from "./lib/native";
 import type { BackendEvent, HardwareStatus, Job, RecordingStatus, Recoverable, Session, Settings } from "./lib/types";
 import { levels, useStore } from "./store";
 
 export default function App() {
-  const s = useStore();
-  const { backend, backendError, settings, view, selectedId, recording, set, toast } = s;
+  const backend = useStore((s) => s.backend);
+  const backendError = useStore((s) => s.backendError);
+  const settings = useStore((s) => s.settings);
+  const view = useStore((s) => s.view);
+  const selectedId = useStore((s) => s.selectedId);
+  const recording = useStore((s) => s.recording);
+  const sessions = useStore((s) => s.sessions);
+  const set = useStore((s) => s.set);
+  const toast = useStore((s) => s.toast);
   const [recoverable, setRecoverable] = useState<Recoverable[]>([]);
   const [onboarding, setOnboarding] = useState(false);
   const [consent, setConsent] = useState(false);
@@ -42,9 +51,9 @@ export default function App() {
       try {
         const [st, hw, jobs, health, rec] = await Promise.all([
           get<Settings>("/api/settings"), get<HardwareStatus>("/api/hardware"), get<Job[]>("/api/jobs"),
-          get<{ windows_build?: number }>("/api/health"), get<RecordingStatus>("/api/recording/status"),
+          get<{ recording_supported?: boolean }>("/api/health"), get<RecordingStatus>("/api/recording/status"),
         ]);
-        set({ settings: st, hardware: hw, jobs, recording: rec, windowsBuild: health.windows_build ?? 0 });
+        set({ settings: st, hardware: hw, jobs, recording: rec, recordingSupported: health.recording_supported ?? true });
         hw.warnings.forEach((w) => toast({ kind: "warning", title: "Hardware", body: w }));
         if (rec.active) set({ view: "recording" });
         await useStore.getState().refreshSessions();
@@ -145,11 +154,7 @@ export default function App() {
     root.style.setProperty("--scale", String(settings.text_scale || 1));
     mq.addEventListener("change", apply);
     return () => mq.removeEventListener("change", apply);
-  }, [settings?.theme, settings?.accent, settings?.text_scale, settings]);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("mica", s.windowsBuild >= 22000);
-  }, [s.windowsBuild]);
+  }, [settings?.theme, settings?.accent, settings?.text_scale]);
 
   // ------------------------------------------------------------------ recording control
   const startRecording = useCallback(async () => {
@@ -204,10 +209,14 @@ export default function App() {
   useEffect(() => {
     if (backend !== "ready" || !settings) return;
     setHotkey(settings.hotkey, toggleRecording).then((err) => {
-      if (err) toast({ kind: "warning", title: "Hotkey unavailable", body: `${settings.hotkey}: ${err}` });
+      if (!err) return;
+      // offer a free alternative in one click (Alt is rarely taken by other apps' global shortcuts)
+      const alt = ["CommandOrControl+Alt+R", "CommandOrControl+Shift+Alt+R"].find((k) => k !== settings.hotkey)!;
+      toast({ kind: "warning", title: `Shortcut ${hotkeyLabel(settings.hotkey)} is unavailable`, body: err,
+        action: { label: `Use ${hotkeyLabel(alt)}`, run: async () => set({ settings: await put<Settings>("/api/settings", { hotkey: alt }) }) } });
     });
     shell.setCloseToTray(settings.minimize_to_tray);
-  }, [backend, settings?.hotkey, settings?.minimize_to_tray, toggleRecording, settings, toast]);
+  }, [backend, settings?.hotkey, settings?.minimize_to_tray, toggleRecording, toast]);
 
   useEffect(() => onTray(toggleRecording, async () => {
     if (useStore.getState().recording.active) {
@@ -238,11 +247,11 @@ export default function App() {
 
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "e") {
+      if (modKey(e) && e.shiftKey && e.key.toLowerCase() === "e") {
         e.preventDefault();
         setDialog({ kind: "export", ids: [] });
       }
-      if (e.ctrlKey && e.key.toLowerCase() === "o") {
+      if (modKey(e) && e.key.toLowerCase() === "o") {
         e.preventDefault();
         pickMediaFiles().then(importFiles);
       }
@@ -254,7 +263,7 @@ export default function App() {
   // ------------------------------------------------------------------ render
   if (backend !== "ready") {
     return (
-      <div className="flex h-full items-center justify-center bg-layer">
+      <Frame><div className="flex h-full items-center justify-center bg-layer">
         {backend === "starting" ? (
           <div className="text-center fade-in">
             <img src="/icon.png" alt="" className="mx-auto h-16 w-16 rounded-2xl shadow-lg" />
@@ -271,13 +280,14 @@ export default function App() {
             <Button className="mt-4" variant="primary" icon={<RotateCw size={15} />} onClick={() => { set({ backend: "starting" }); shell.restartBackend(); }}>Restart engine</Button>
           </div>
         )}
-      </div>
+      </div></Frame>
     );
   }
 
-  const selected = s.sessions.find((x) => x.id === selectedId);
+  const selected = sessions.find((x) => x.id === selectedId);
   const openReprocess = (x: Session) => setDialog({ kind: "reprocess", session: x });
   return (
+    <Frame>
     <div className="flex h-full">
       <Sidebar
         onRecord={startRecording}
@@ -320,11 +330,23 @@ export default function App() {
       {dialog?.kind === "export" && <BatchExportDialog initial={dialog.ids} onClose={() => setDialog(null)} />}
       <Toasts />
     </div>
+    </Frame>
+  );
+}
+
+/** The app's own title bar above whatever screen is showing, so the window can always be moved and closed. */
+function Frame({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex h-full flex-col">
+      <TitleBar />
+      <div className="min-h-0 flex-1">{children}</div>
+    </div>
   );
 }
 
 function Empty({ onRecord, onUpload }: { onRecord: () => void; onUpload: () => void }) {
-  const hotkey = useStore((s) => s.settings?.hotkey ?? "").replace("CommandOrControl", "Ctrl");
+  const canRecord = useStore((s) => s.recordingSupported);
+  const hotkey = hotkeyLabel(useStore((s) => s.settings?.hotkey ?? ""));
   return (
     <div className="flex h-full items-center justify-center bg-layer p-10">
       <div className="max-w-xl text-center fade-in">
@@ -332,10 +354,10 @@ function Empty({ onRecord, onUpload }: { onRecord: () => void; onUpload: () => v
         <h1 className="mt-5 text-[1.5rem] font-semibold tracking-tight">Record or import a meeting</h1>
         <p className="mt-2 text-[0.9rem] text-fg-2">Get a transcript with speaker names and timestamps, in English, हिंदी or Hinglish, without anything leaving your PC.</p>
         <div className="mt-6 flex justify-center gap-3">
-          <Button size="lg" variant="primary" icon={<Mic size={18} />} onClick={onRecord}>New Recording</Button>
+          <Button size="lg" variant="primary" icon={<Mic size={18} />} onClick={onRecord} disabled={!canRecord}>New Recording</Button>
           <Button size="lg" icon={<Upload size={18} />} onClick={onUpload}>Upload Media</Button>
         </div>
-        <p className="mt-5 text-[0.8rem] text-fg-3">Drop audio or video files anywhere · {hotkey} starts/stops recording from any app · Ctrl+F searches a transcript</p>
+        <p className="mt-5 text-[0.8rem] text-fg-3">Drop audio or video files anywhere · {hotkey} starts/stops recording from any app · {MOD_LABEL}+F searches a transcript</p>
       </div>
     </div>
   );

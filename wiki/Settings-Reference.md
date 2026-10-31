@@ -11,7 +11,7 @@ Open Settings with the ⚙️ button at the bottom left. Changes apply immediate
 | **Language** | Auto (English + Hindi), English only, Hindi only, or Translate Hindi to English. See [Languages and Hindi](Languages-and-Hindi). | Auto |
 | **Hindi / Hinglish script** | As spoken, Devanagari, or Roman letters. | As spoken |
 | **Speech recognition model** | *Automatic* uses Nemotron 3.5 ASR, and Whisper only for translation. Pick a model to force it. Whisper models appear here once you import a [model pack](Offline-Model-Packs). | Automatic |
-| **Custom vocabulary** | Names and jargon, separated by commas. Used only by Whisper models. | Empty |
+| **Custom vocabulary** | Names and jargon, separated by commas. Used by Shruti and the Whisper models, not by Nemotron. | Empty |
 | **Minimum speakers** | Raise it if a quiet speaker is missed. | Auto |
 | **Maximum speakers** | Lower it if one person is split into several speakers. Up to 8. | Auto (up to 8) |
 | **Process automatically** | Transcribe recordings and imports as soon as they're saved. | On |

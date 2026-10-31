@@ -135,3 +135,19 @@ def test_whole_percents_add_up_to_100():
     assert _whole_percents([74.5, 25.5]) in ([75, 25], [74, 26])
     assert sum(_whole_percents([33.33, 33.33, 33.34])) == 100
     assert _whole_percents([100.0]) == [100] and _whole_percents([]) == []
+
+
+def test_settings_are_validated_before_anything_is_saved(db):
+    import pytest
+
+    for bad in ({"text_scale": 0}, {"text_scale": "big"}, {"accent": "blue"}, {"theme": "neon"}, {"nope": 1},
+                {"min_speakers": 99}, {"auto_process": "yes"}, {"asr_model": None}):
+        with pytest.raises(ValueError):
+            db.set_settings(bad)
+    with pytest.raises(ValueError):  # one bad value rejects the whole update
+        db.set_settings({"theme": "dark", "text_scale": 0})
+    assert db.get_settings()["theme"] == "system"
+    db.set_settings({"theme": "dark", "text_scale": 1.2, "accent": "#a1B2c3", "min_speakers": None, "playback_kbps": 96,
+                     "mic_device": "Microphone (USB)"})
+    st = db.get_settings()
+    assert st["theme"] == "dark" and st["text_scale"] == 1.2 and st["min_speakers"] is None

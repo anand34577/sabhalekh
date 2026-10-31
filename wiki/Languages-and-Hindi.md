@@ -36,11 +36,23 @@ Each line in the transcript is tagged **EN** or **HI** so you can see what was d
 - **Casual, fast Hinglish** is harder than clear speech for every speech model. Good microphones and headphones help
   more than any setting.
 
+## Shruti, a small model for Hinglish
+
+**Udgam Labs Shruti** is an optional 55-million-parameter model (about 30 MB) trained on Indian speech. Pick it in
+**Settings → Transcription → Speech recognition model**. It works on the CPU, needs very little memory, and is the
+most accurate open model its authors measured on Hinglish. Notes:
+
+- Hindi is written in Devanagari and English words in Latin letters, so Hinglish comes out naturally. *Roman* script
+  still works; *Devanagari* cannot turn English words into Devanagari.
+- There is **no punctuation or capital letters**, and numbers are written as words. Nemotron adds punctuation.
+- Use **English only** for Indian-accented English. Its English is weaker than Whisper large-v3's.
+- It cannot translate, and it was not tested on noisy rooms, music or rare names.
+
 ## Custom vocabulary
 
 **Settings → Transcription → Custom vocabulary** lets you list names and jargon (*Rahul Sharma, Kubernetes, GST,
-Jio*). It helps spelling only with the Whisper models from the Accuracy pack. The built-in Nemotron model doesn't
-accept a vocabulary.
+Jio*). It helps spelling with Shruti and with the Whisper models from the Accuracy pack. The built-in Nemotron model
+doesn't accept a vocabulary.
 
 ## Other languages
 

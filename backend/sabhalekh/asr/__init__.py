@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from .base import ASREngine, ASROptions, ASRSegment, OutOfMemory, Word  # noqa: F401
+from .shruti import ShrutiEngine
 from .transcribe_cpp import TranscribeCppEngine
 from .whisper_ct2 import WhisperCT2Engine
 
@@ -15,4 +16,8 @@ def _transcribe_cpp(model_path: str, model_id: str, profile) -> ASREngine:
     return TranscribeCppEngine(model_path, model_id, accel=profile.accel, threads=profile.threads)
 
 
-ENGINES = {"faster-whisper": _whisper, "transcribe-cpp": _transcribe_cpp}
+def _shruti(model_path: str, model_id: str, profile) -> ASREngine:
+    return ShrutiEngine(model_path, model_id, threads=profile.threads)
+
+
+ENGINES = {"faster-whisper": _whisper, "transcribe-cpp": _transcribe_cpp, "needle-whistle": _shruti}

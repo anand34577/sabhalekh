@@ -28,6 +28,10 @@ BUILTIN = [
      "label": "NVIDIA Nemotron 3.5 ASR (0.6B)", "dir": "asr/nemotron-3.5-asr-0.6b",
      "notes": "Default. Lowest Hindi word error rate, punctuated output, ~18x real time on a GTX 1650 with "
               "0.7 GB VRAM. Runs on any Vulkan GPU, an integrated GPU or the CPU. Cannot translate."},
+    {"id": "shruti-55m", "kind": "asr", "engine": "needle-whistle", "translate": False,
+     "label": "Udgam Labs Shruti (55M)", "dir": "asr/shruti",
+     "notes": "Tiny (30 MB) Hindi, English and Hinglish model, CPU only. Best open model on Hinglish; Hindi in "
+              "Devanagari, English words in Latin. No punctuation or capitals. Cannot translate."},
     {"id": "whisper-large-v3-turbo-int8", "kind": "asr", "engine": "faster-whisper", "translate": False,
      "label": "Whisper large-v3-turbo", "dir": "asr/whisper-large-v3-turbo-int8",
      "notes": "Fast multilingual model. Not used for 'Translate to English' (it was not trained for translation)."},
@@ -53,6 +57,12 @@ def _transcribe_cpp_installed() -> bool:
 
     lib = os.environ.get("TRANSCRIBE_LIBRARY") or str(config.TRANSCRIBE_LIB_DIR / "transcribe.dll")
     return Path(lib).is_file() and importlib.util.find_spec("transcribe_cpp") is not None
+
+
+def _needle_installed() -> bool:
+    from .asr.shruti import runtime_installed
+
+    return runtime_installed()
 
 
 def _sha256(path: Path, chunk: int = 8 * 1024 * 1024) -> str:
@@ -104,8 +114,12 @@ class ModelRegistry:
             missing.append("encoder_*.onnx")
         if m["engine"] == "transcribe-cpp" and not any(p.glob("*.gguf")):
             missing.append("*.gguf")
+        if m["engine"] == "needle-whistle" and not any(p.glob("*.cact")):
+            missing.append("*.cact")
         if missing:
             return False, f"missing files: {', '.join(missing)}"
+        if m["engine"] == "needle-whistle" and not _needle_installed():
+            return False, "the Shruti runtime (bin/needle/libneedle.dll) is missing; reinstall Sabhalekh"
         if m["engine"] == "transcribe-cpp" and not _transcribe_cpp_installed():
             return False, "the transcribe.cpp runtime (bin/transcribe/transcribe.dll) is missing; reinstall Sabhalekh"
         bad = [f for f in self.bad_files if f.startswith(m["dir"].replace("\\", "/") + "/")]
@@ -136,7 +150,7 @@ class ModelRegistry:
             # fallback and the translator
             order = ["nemotron-3.5-asr-0.6b"]
             if prefer_light:
-                order += ["whisper-small-int8", "whisper-medium-int8", "whisper-large-v3-turbo-int8"]
+                order += ["shruti-55m", "whisper-small-int8", "whisper-medium-int8", "whisper-large-v3-turbo-int8"]
             elif device == "cuda":
                 order += ["whisper-large-v3-int8", "whisper-large-v3-turbo-int8", "whisper-medium-int8"]
             else:

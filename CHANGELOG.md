@@ -5,6 +5,42 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-31
+
+### Changed
+- The app now draws its own title bar (drag to move, double-click to maximise, minimise/maximise/close buttons, a
+  recording indicator with the elapsed time, and the open meeting's name) instead of the system one. On macOS the
+  native window buttons are kept and the bar sits next to them.
+- No more gradients: the Windows 11 Mica effect is gone, which tinted the sidebar with a gradient of the desktop
+  wallpaper, so every surface is a solid colour. The indeterminate progress bar is a plain sliding bar and the
+  website headline is a solid colour.
+- Keyboard shortcuts use Cmd on macOS and Ctrl elsewhere.
+- The app icon is a flat colour instead of a blue-to-purple gradient (`tools/make_icons.py`).
+- Continuous integration now also builds and tests the app on Linux and macOS, so those platforms are checked on
+  every change (Windows remains the supported platform; recording is Windows-only for now).
+
+### Fixed
+- The sidebar re-fetched tags and re-ran the search on every progress update while a meeting was being processed.
+- The recording hotkey was re-registered every time any setting changed.
+- A "HotKey already registered" popup could appear on start. Hotkey registration is now queued, and when another
+  program really owns the shortcut the popup says so in plain words and offers a one-click free alternative
+  (Ctrl+Alt+R). Popups with a button now stay for 15 seconds.
+- Settings are validated: an out-of-range text size, an invalid colour or an unknown setting is rejected instead of
+  being saved and breaking the app on the next start.
+- The development shell and backend lookup no longer assume Windows file names.
+- Where meetings cannot be recorded (anything but Windows), the New Recording button is disabled with an
+  explanation, the backend gives a clear message instead of a crash, and installing the dependencies no longer fails on
+  PyAudioWPatch. Importing audio and video is unaffected.
+- Shruti writes the English pronoun "I" with a capital letter (its output is otherwise all lowercase).
+
+### Added
+- **Shruti** (Udgam Labs, 55M, about 30 MB) as a selectable speech recognition model for Hindi, English and Hinglish.
+  It runs on the CPU through the Cactus needle engine, writes Hindi in Devanagari and English words in Latin letters,
+  and uses the Custom vocabulary setting as keywords. Choose it under Settings → Transcription → Speech recognition
+  model; *Automatic* still picks Nemotron. Needs `tools/fetch_models.py --with-shruti` when building.
+- When a turn switches language in the middle (English then Hindi), Shruti decodes the part the model skipped
+  instead of leaving it out of the transcript.
+
 ## [1.2.0] - 2026-10-24
 
 First public release.

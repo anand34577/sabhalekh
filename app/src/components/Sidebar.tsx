@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import {
-  ArrowDownUp, Cpu, Filter, Gpu, ListChecks, Lock, Mic, MoreHorizontal, RefreshCw, Search, Settings, Trash2,
+  ArrowDownUp, Cpu, Filter, Gpu, ListChecks, Mic, MoreHorizontal, RefreshCw, Search, Settings, Trash2,
   Upload, X,
 } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
@@ -35,6 +35,9 @@ export function Sidebar(props: {
 }) {
   const { sessions, selectedId, select, query, set, filters, hardware, jobs, recording, view, refreshSessions } =
     useStore();
+  // job_progress events replace `sessions` every tick; only re-query when something searchable changed
+  const listKey = useMemo(() => sessions.map((x) => `${x.id}|${x.title}|${x.status}|${x.tags.join(",")}`).join(";"), [sessions]);
+  const recordingSupported = useStore((s) => s.recordingSupported);
   const [hits, setHits] = useState<SearchHit[] | null>(null);
   const [tags, setTags] = useState<string[]>([]);
 
@@ -48,11 +51,11 @@ export function Sidebar(props: {
       get<SearchHit[]>(`/api/search?q=${encodeURIComponent(q)}`).then(setHits).catch(() => setHits([]));
     }, 180);
     return () => clearTimeout(t);
-  }, [query, sessions]);
+  }, [query, listKey]);
 
   useEffect(() => {
     get<string[]>("/api/tags").then(setTags).catch(() => {});
-  }, [sessions]);
+  }, [listKey]);
 
   useEffect(() => {
     refreshSessions().catch(() => {});
@@ -71,15 +74,8 @@ export function Sidebar(props: {
 
   return (
     <aside className="flex h-full w-[300px] shrink-0 flex-col border-r border-stroke bg-transparent">
-      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3">
-        <img src="/icon.png" alt="" className="h-7 w-7 rounded-lg" />
-        <span className="text-[1.02rem] font-semibold tracking-tight">Sabhalekh</span>
-        <span className="ml-auto flex items-center gap-1 text-[0.7rem] text-fg-3" title="Nothing ever leaves this PC">
-          <Lock size={12} /> Offline
-        </span>
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 px-3">
+      {/* the icon and name live in the title bar */}
+      <div className="grid grid-cols-2 gap-2 px-3 pt-3">
         {recording.active ? (
           <Button variant="danger" onClick={() => useStore.getState().set({ view: "recording" })}
             className="col-span-2" icon={<span className="rec-dot h-2 w-2 rounded-full bg-white" />}>
@@ -87,7 +83,8 @@ export function Sidebar(props: {
           </Button>
         ) : (
           <>
-            <Button variant="primary" icon={<Mic size={16} />} onClick={props.onRecord}>New Recording</Button>
+            <Button variant="primary" icon={<Mic size={16} />} onClick={props.onRecord} disabled={!recordingSupported}
+              title={recordingSupported ? undefined : "Recording is only available on Windows for now. You can still upload media."}>New Recording</Button>
             <Button icon={<Upload size={16} />} onClick={props.onUpload}>Upload Media</Button>
           </>
         )}
