@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from .base import ASREngine, ASROptions, ASRSegment, OutOfMemory, Word  # noqa: F401
+from .hima import HimaEngine
 from .shruti import ShrutiEngine
 from .transcribe_cpp import TranscribeCppEngine
 from .whisper_ct2 import WhisperCT2Engine
@@ -20,4 +21,9 @@ def _shruti(model_path: str, model_id: str, profile) -> ASREngine:
     return ShrutiEngine(model_path, model_id, threads=profile.threads)
 
 
-ENGINES = {"faster-whisper": _whisper, "transcribe-cpp": _transcribe_cpp, "needle-whistle": _shruti}
+def _hima(model_path: str, model_id: str, profile) -> ASREngine:
+    return HimaEngine(model_path, model_id, threads=profile.threads, accel=profile.accel)
+
+
+ENGINES = {"faster-whisper": _whisper, "transcribe-cpp": _transcribe_cpp, "needle-whistle": _shruti,
+           "hima-onnx": _hima}

@@ -23,7 +23,7 @@ if sys.platform == "win32":
 hidden = [
     "uvicorn.protocols.http.h11_impl", "uvicorn.protocols.websockets.websockets_sansio_impl", "uvicorn.lifespan.on",
     "uvicorn.loops.asyncio", "pynvml", "uharfbuzz", "fontTools.ttLib", "transcribe_cpp",
-    "needle", "needle.agent.whistle",
+    "needle", "needle.agent.whistle", "tokenizers",  # tokenizers: Hima-ASR's tokenizer (onnxruntime is collected above)
 ]
 
 excludes = [
