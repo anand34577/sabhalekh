@@ -29,6 +29,15 @@ if ($LASTEXITCODE) { throw "pip install failed" }
 # Cactus needle (pure Python, runs Shruti ASR): --no-deps, the app never downloads models
 & $py -m pip install -q --no-deps cactus-needle==3.2.8
 if ($LASTEXITCODE) { throw "cactus-needle install failed" }
+# tokenizers (Rust wheel, tokenizes Hima-ASR): --no-deps, its huggingface_hub dependency is a downloader
+& $py -m pip install -q --no-deps tokenizers==0.23.3
+if ($LASTEXITCODE) { throw "tokenizers install failed" }
+# ONNX Runtime with DirectML (CPU + any DirectX 12 GPU, no CUDA): runs Hima-ASR's encoder on the GPU or iGPU.
+# It provides the same `onnxruntime` module as the CPU package that faster-whisper pulls in, so that one is removed
+# first; diarization and VAD run on its CPU provider as before. 1.24.4 is the newest DirectML release.
+& $py -m pip uninstall -q -y onnxruntime onnxruntime-directml
+& $py -m pip install -q --no-deps onnxruntime-directml==1.24.4
+if ($LASTEXITCODE) { throw "onnxruntime-directml install failed" }
 # transcribe.cpp Python bindings (pure ctypes): --no-deps because the native library is bin\transcribe\transcribe.dll
 & $py -c "import importlib.util, sys; sys.exit(importlib.util.find_spec('transcribe_cpp') is None)"
 if ($LASTEXITCODE) {
@@ -51,6 +60,7 @@ Remove-Item -Recurse -Force $bm -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force "$bm\asr", "$bm\diarization" | Out-Null
 Copy-Item -Recurse $asr "$bm\asr\"
 if (Test-Path "models\asr\shruti") { Copy-Item -Recurse "models\asr\shruti" "$bm\asr\" }
+if (Test-Path "models\asr\hima-asr\onnx") { Copy-Item -Recurse "models\asr\hima-asr" "$bm\asr\" }  # optional, ~0.5 GB
 Copy-Item -Recurse "models\diarization\nemotron3" "$bm\diarization\"
 & $py tools\make_manifest.py manifest $bm
 if ($LASTEXITCODE) { throw "manifest failed" }

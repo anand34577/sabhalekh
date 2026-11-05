@@ -32,6 +32,12 @@ BUILTIN = [
      "label": "Udgam Labs Shruti (55M)", "dir": "asr/shruti",
      "notes": "Tiny (30 MB) Hindi, English and Hinglish model, CPU only. Best open model on Hinglish; Hindi in "
               "Devanagari, English words in Latin. No punctuation or capitals. Cannot translate."},
+    {"id": "hima-asr-0.46b", "kind": "asr", "engine": "hima-onnx", "translate": False,
+     "label": "Prahaladha Hima-ASR (0.46B)", "dir": "asr/hima-asr",
+     "notes": "Hindi, English and ten more Indian languages (Tamil, Telugu, Kannada, Malayalam, Bengali, Marathi, "
+              "Gujarati, Punjabi, Odia, Assamese); best open model on South Indian languages. 0.5 GB (4-bit). "
+              "Runs on the CPU; with DirectML its encoder also uses the GPU or iGPU (no CUDA needed). "
+              "No punctuation or capitals. Cannot translate."},
     {"id": "whisper-large-v3-turbo-int8", "kind": "asr", "engine": "faster-whisper", "translate": False,
      "label": "Whisper large-v3-turbo", "dir": "asr/whisper-large-v3-turbo-int8",
      "notes": "Fast multilingual model. Not used for 'Translate to English' (it was not trained for translation)."},
@@ -116,8 +122,14 @@ class ModelRegistry:
             missing.append("*.gguf")
         if m["engine"] == "needle-whistle" and not any(p.glob("*.cact")):
             missing.append("*.cact")
+        if m["engine"] == "hima-onnx":
+            from .asr import hima
+
+            missing += hima.missing_files(p)
         if missing:
             return False, f"missing files: {', '.join(missing)}"
+        if m["engine"] == "hima-onnx" and not hima.runtime_installed():
+            return False, "the Hima runtime (the onnxruntime and tokenizers packages) is missing; reinstall Sabhalekh"
         if m["engine"] == "needle-whistle" and not _needle_installed():
             return False, f"the Shruti runtime (bin/needle/{config.NEEDLE_LIB_NAME}) is missing; reinstall Sabhalekh"
         if m["engine"] == "transcribe-cpp" and not _transcribe_cpp_installed():

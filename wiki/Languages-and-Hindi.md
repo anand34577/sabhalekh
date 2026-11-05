@@ -48,6 +48,25 @@ most accurate open model its authors measured on Hinglish. Notes:
 - Use **English only** for Indian-accented English. Its English is weaker than Whisper large-v3's.
 - It cannot translate, and it was not tested on noisy rooms, music or rare names.
 
+## Hima-ASR, for Hindi and the South Indian languages
+
+**Prahaladha Hima-ASR** is an optional 0.46-billion-parameter model for English and eleven Indian languages. It has
+the lowest published error rate of its size in Telugu, Tamil, Kannada and Malayalam. It is not part of the standard
+installer because it carries Google's Gemma Terms of Use; add it with `python tools/fetch_models.py --with-hima` when
+building from source, or import a model pack that contains it. Pick it in **Settings → Transcription → Speech
+recognition model**. Notes:
+
+- It is about 0.5 GB (a 4-bit build, as accurate as the 8-bit one on our Hindi tests) and runs on any computer.
+  On Windows, with a dedicated or integrated GPU, the part that listens to the audio runs on the GPU through
+  DirectML (no CUDA needed) and the part that writes the text runs on the CPU, where it is fastest. On a GTX 1650
+  that is about 12x real time; on the CPU alone about 8x. If the GPU fails, it carries on on the CPU.
+- Leave the language on **Automatic** to transcribe Tamil, Telugu and the other languages: the model detects the
+  language. *Hindi only* and *English only* are passed to the model as they are.
+- *As spoken* and *Roman* write English words in Latin letters inside the native script; *Devanagari* writes
+  everything in the native script.
+- There is **no punctuation or capital letters**, and it ignores custom vocabulary. It cannot translate.
+- Speaker labelling and the search are tuned for English and Hindi; other languages are transcribed but not tested end to end.
+
 ## Custom vocabulary
 
 **Settings → Transcription → Custom vocabulary** lets you list names and jargon (*Rahul Sharma, Kubernetes, GST,

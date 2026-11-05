@@ -5,6 +5,26 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-11-05
+
+### Added
+- **Hima-ASR** (Prahaladha, 0.46B) as a selectable speech recognition model for English and eleven Indian languages:
+  Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Marathi, Gujarati, Punjabi, Odia and Assamese. It has the lowest
+  published error rate of its size in the South Indian languages. Leave the language on *Automatic* and the model
+  detects it; *Hindi only* and *English only* are passed on. The transcript has no punctuation or capitals, and words
+  are timed from the speech in each chunk because the model gives no timings.
+- Hima uses a 4-bit build of about 0.5 GB, as accurate on the Hindi test clips as the 8-bit one (9.2 % word error
+  rate). It runs on any CPU. On Windows the part that listens to the audio also runs on a dedicated or integrated
+  GPU through DirectML, with no CUDA needed; the part that writes the text stays on the CPU, where it is about ten
+  times faster than on a GPU. On a GTX 1650 the whole model runs at about 12x real time, against 8.6x on the CPU
+  alone. If the GPU fails, transcription carries on on the CPU.
+- Hima is not in the installer because it falls under Google's Gemma Terms of Use. Add it with
+  `tools/fetch_models.py --with-hima` when building, or with a model pack.
+
+### Changed
+- The Windows build uses ONNX Runtime with DirectML (`onnxruntime-directml` 1.24.4, the newest DirectML release)
+  instead of the CPU-only package. Diarization and voice detection still run on its CPU provider.
+
 ## [1.3.1] - 2026-10-31
 
 ### Added

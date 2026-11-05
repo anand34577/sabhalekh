@@ -5,6 +5,10 @@
 # (installer\build.ps1 does this); its native library ships in bin/transcribe/.
 # cactus-needle 3.2.8 (runs Shruti ASR) is installed with --no-deps by installer\build.ps1: its only dependency,
 # huggingface_hub, downloads models, which the app never does; the engine library ships in bin/needle/.
+# tokenizers 0.23.3 (Hima-ASR's tokenizer) is also installed with --no-deps by installer\build.ps1 and the release
+# workflow, for the same reason: its dependency huggingface_hub is a downloader the app never uses.
+# On Windows the build then replaces onnxruntime with onnxruntime-directml 1.24.4 (same module, CPU + DirectML), so
+# Hima-ASR's encoder can use the GPU or iGPU without CUDA. Development works with either package.
 faster-whisper==1.2.1
 ctranslate2==4.8.3
 onnxruntime==1.31.0
